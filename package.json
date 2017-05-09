@@ -1,0 +1,26 @@
+{
+  "name": "higea-api",
+  "version": "0.0.1",
+  "description": "API de servicios REST para la conexión a los productos de la familia Higea.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "7.10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FolderIT/higea-api.git"
+  },
+  "author": "Miguel Bustos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FolderIT/higea-api/issues"
+  },
+  "homepage": "https://github.com/FolderIT/higea-api#readme",
+  "dependencies": {
+    "express": "^4.15.2",
+    "sqlanywhere": "^1.0.18"
+  }
+}
