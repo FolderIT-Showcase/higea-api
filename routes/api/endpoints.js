@@ -138,7 +138,7 @@ class Endpoints {
 				} else {
 					resolve(client);
 				}
-			}, (err) => {
+			}).catch((err) => {
 				reject(err);
 			});
 		});
@@ -162,6 +162,7 @@ class Endpoints {
 					}).then((user) => {
 						if (!user) {
 							reject({
+								status: 403,
 								message: "El usuario no tiene permisos para interactuar con el cliente solicitado. Contáctese con el Administrador del servicio de Facturación Electrónica."
 							});
 						} else {
@@ -173,7 +174,7 @@ class Endpoints {
 				} else {
 					resolve(permit);
 				}
-			}, (err) => {
+			}).catch((err) => {
 				reject(err);
 			});
 		});
@@ -217,7 +218,10 @@ class Endpoints {
 			jwt.verify(token, global.tokenSecret, function (err, decoded) {
 				if (err) {
 					logger.error(err);
-					return res.status(401).send("No se pudo autenticar el token.");
+					return res.status(401).json({
+						result: false,
+						err: "No se pudo autenticar el token."
+					});
 				} else {
 					req.decoded = decoded;
 					next();
@@ -245,7 +249,10 @@ class Endpoints {
 				return res.json({ result: false, err: err.message });
 			});
 		} else {
-			return res.status(401).send("Error en autenticación");
+			return res.status(401).json({
+				result: false,
+				err: "Error en autenticación"
+			});
 		}
 	}
 
@@ -263,6 +270,10 @@ class Endpoints {
 				}
 			});
 		}).catch((err) => {
+			if (err.status) {
+				res.status(err.status);
+			}
+
 			res.json({
 				result: false,
 				err: err.message
@@ -374,6 +385,8 @@ class Endpoints {
 						resolve(data);
 					});
 				});
+			}).catch((err) => {
+				reject(err);
 			});
 		});
 	}
@@ -444,7 +457,10 @@ class Endpoints {
 			admin: true
 		}).then((user) => {
 			if (!user) {
-				return res.status(403).send("El usuario no tiene permisos administrativos.");
+				return res.status(403).json({
+					result: false,
+					err: "El usuario no tiene permisos administrativos."
+				});
 			} else {
 				next();
 			}
