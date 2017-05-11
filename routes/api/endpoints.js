@@ -13,6 +13,7 @@ var _ = require('lodash'),
 	Sybase = require('sybase'),
 	SQLAnywhere = require('../../models/SQLAnywhere'),
 	validate = require('express-jsonschema').validate,
+	auth = require('basic-auth'),
 	logger = require('tracer').colorConsole(global.loggerFormat);
 
 class Endpoints {
@@ -214,30 +215,18 @@ class Endpoints {
 		var username = req.body.username || req.query.username || req.headers['username'];
 		var password = req.body.password || req.query.password || req.headers['password'];
 
-		if (token) {
-			jwt.verify(token, global.tokenSecret, function (err, decoded) {
-				if (err) {
-					logger.error(err);
-					return res.status(401).json({
-						result: false,
-						err: "No se pudo autenticar el token."
-					});
-				} else {
-					req.decoded = decoded;
-					next();
-				}
-			});
-		} else if (username && password) {
-			//Verificar username+password
+		var verifyUser = function (username, password) {
+			logger.debug(username, password);
+
 			var Users = mongoose.model('Users');
 
 			Users.findOne({
-				username: req.body.username
+				username: username
 			}).then(function (user) {
 				if (!user)
 					return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
 
-				if (user.password != md5(req.body.password))
+				if (user.password != md5(password))
 					return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
 
 				req.decoded = {
@@ -248,10 +237,34 @@ class Endpoints {
 			}, function (err) {
 				return res.json({ result: false, err: err.message });
 			});
+		}
+
+		if (token) {
+			jwt.verify(token, global.tokenSecret, function (err, decoded) {
+				if (err) {
+					//Verificar si es un token de Basic Auth
+					var user = auth(req);
+					if (user) {
+						verifyUser(user.name, user.pass);
+					} else {
+						logger.error(err);
+						return res.status(401).json({
+							result: false,
+							err: "No se pudo autenticar."
+						});
+					}
+				} else {
+					req.decoded = decoded;
+					next();
+				}
+			});
+		} else if (username && password) {
+			//Verificar username+password
+			verifyUser(username, password);
 		} else {
 			return res.status(401).json({
 				result: false,
-				err: "Error en autenticación"
+				err: "Por favor provea los datos para la autenticación."
 			});
 		}
 	}
@@ -394,25 +407,33 @@ class Endpoints {
 	login(req, res) {
 		var Users = mongoose.model('Users');
 
-		if (!req.body.rcResponse) {
-			return res.json({
-				result: false,
-				err: "Por favor ingrese la verificación reCAPTCHA."
-			});
-		}
-
 		Users.findOne({
 			username: req.body.username
 		}).then(function (user) {
 			if (!user)
-				return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta, o el usuario no existe" });
+				return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
 
 			if (user.password != md5(req.body.password))
-				return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta, o el usuario no existe" });
+				return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
 
 			var token = jwt.sign(user, global.tokenSecret, {
 				expiresIn: 60 * 60 * 24 // Expirar el token en 24 horas
 			});
+
+			// Si no proporciona un reCAPTCHA, se lo identifica como usuario externo y se lo autentica
+			if (!req.body.rcResponse) {
+				return res.json({
+					result: true,
+					token: token
+				});
+			}
+
+			// if (!req.body.rcResponse) {
+			// 	return res.json({
+			// 		result: false,
+			// 		err: "Por favor ingrese la verificación reCAPTCHA."
+			// 	});
+			// }
 
 			var verificationUrl = "https://www.google.com/recaptcha/api/siteverify?secret=" + config.rcSecret + "&response=" + req.body.rcResponse + "&remoteip=";
 
@@ -435,7 +456,7 @@ class Endpoints {
 				} else {
 					res.json({
 						result: false,
-						err: "La verificación reCAPTCHA ha expirado o es inválida. Intente nuevamente."
+						err: "La verificación reCAPTCHA ha expirado o es inválida. Por favor, intente nuevamente."
 					});
 				}
 			});
