@@ -1,9 +1,11 @@
 {
   "name": "higea-api",
   "version": "0.0.1",
-  "description": "API de servicios REST para la conexión a los productos de la familia Higea.",
+  "description": "API de servicios REST para la conexión a los productos de la familia Higea",
   "main": "server.js",
   "scripts": {
+    "install-windows-service": "winser -i --env PORT=3202 NODE_ENV=production",
+    "uninstall-windows-service": "winser -r",
     "start": "node ./server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
