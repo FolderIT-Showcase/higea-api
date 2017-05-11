@@ -70,3 +70,8 @@ hr {
     margin-left: -20px;
     margin-right: -20px;
 }
+
+.vc-recaptcha > div {
+    margin-left: auto;
+    margin-right: auto;
+}

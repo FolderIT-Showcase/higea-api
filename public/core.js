@@ -57,6 +57,9 @@ app.factory('httpAbortInterceptor', ['$q', '$location', '$localStorage', 'jwtHel
                 toastr.warning("Su sesión ha expirado. Por favor, reingrese al sistema.");
                 canceller.resolve('Session Expired');
                 $location.path('/');
+            } else if (rejection.status === 400) {
+                toastr.warning("Solicitud inválida.");
+                canceller.resolve('Bad Request');
             } else if (rejection.status === 401) {
                 toastr.warning("Su sesión es inválida o ha expirado. Por favor, reingrese al sistema.");
                 canceller.resolve('Unauthorized');
@@ -65,7 +68,17 @@ app.factory('httpAbortInterceptor', ['$q', '$location', '$localStorage', 'jwtHel
                 toastr.warning("Su usuario no tiene permisos para realizar la operación.");
                 canceller.resolve('Forbidden');
             } else {
-                toastr.error(rejection.data || TEXT_ERRORS.ERR_API_CONNECTION);
+                let err = TEXT_ERRORS.ERR_API_CONNECTION;
+                
+                if (rejection.data && rejection.data.err) {
+                    err = rejection.data.err;
+                }
+                
+                if (rejection.data && typeof(rejection.data) === "string") {
+                    err = rejection.data;
+                }
+                
+                toastr.error(err);
             }
             return $q.reject(rejection);
         }
