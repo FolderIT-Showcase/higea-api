@@ -1,0 +1,26 @@
+<div class="modal-header">
+    <h3 class="modal-title" id="modal-title">{{modalTitle}}</h3>
+</div>
+<div class="modal-body" id="modal-body" dw-loading="queryResults">
+    <div class="row">
+        <div class="col-md-12">
+            <div ng-if="queryResults.columns" class="table-responsive">
+                <table datatable="ng" dt-options="vmQ.dtOptions" dt-column-defs="vmQ.dtColumnDefs" class="table table-custom table-striped table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th ng-repeat="column in queryResults.columns">{{column.label}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="row in queryResults.rows">
+                            <td ng-repeat="column in queryResults.columns">{{row[column.name] | queryRow:column.type}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" type="button" ng-click="$dismiss()">Cerrar</button>
+</div>
