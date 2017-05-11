@@ -14,6 +14,31 @@ basePath: /api
 schemes:
   - http
 paths:
+  '/login':
+    post:
+      tags:
+        - Login
+      summary: Obtención de token de autenticación
+      description: >-
+        Se debe enviar un usuario y contraseña válidos. Si el usuario es
+        administrador, contará con acceso a todos los clientes. Si no es
+        administrador, sólo podrá realizar operaciones sobre los clientes que
+        tenga habilitados.
+      operationId: login
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Datos de usuario a autenticar"
+          required: true
+          schema:
+            $ref: "#/definitions/Usuario"
+      responses:
+        '200':
+          $ref: '#/responses/Login'
+        '400':
+          $ref: '#/responses/BadRequest'
   '/{cliente}/profesionales':
     get:
       tags:
@@ -127,10 +152,21 @@ paths:
         '403':
           $ref: '#/responses/Forbidden'
 responses:
+  Login:
+    description: Login exitoso
+    schema:
+      title: "Login"
+      allOf:
+        - $ref: '#/definitions/Response'
+        - type: object
+          properties:
+            token:
+              type: string
+              description: "El token debe enviarse en las propiedades de autenticación del header de todas las solicitudes"
   Profesionales:
     description: Consulta exitosa
     schema:
-      title: Turnos
+      title: "Turnos"
       allOf:
         - $ref: '#/definitions/Response'
         - type: object
@@ -149,7 +185,7 @@ responses:
   Especialidades:
     description: Consulta exitosa
     schema:
-      title: Turnos
+      title: "Turnos"
       allOf:
         - $ref: '#/definitions/Response'
         - type: object
@@ -168,7 +204,7 @@ responses:
   Turnos:
     description: Consulta exitosa
     schema:
-      title: Turnos
+      title: "Turnos"
       allOf:
         - $ref: '#/definitions/Response'
         - type: object
@@ -185,15 +221,15 @@ responses:
                   items:
                     $ref: '#/definitions/Turno'
   BadRequest:
-    description: Solicitud inválida
+    description: "Solicitud inválida"
     schema:
       $ref: '#/definitions/Error'
   Unauthorized:
-    description: Autenticación inválida
+    description: "Autenticación inválida"
     schema:
       $ref: '#/definitions/Error'
   Forbidden:
-    description: No tiene permisos suficientes
+    description: "No tiene permisos suficientes"
     schema:
       $ref: '#/definitions/Error'
 definitions:
@@ -203,30 +239,42 @@ definitions:
       result:
         type: boolean
         default: 'true'
-      data:
-        type: object
+        description: "Si la respuesta es satisfactoria, esta propiedad será true. De otra forma, será false."
   Error:
     type: object
     properties:
       result:
         type: boolean
         default: false
+        description: "El valor siempre será falso"
       err:
         type: string
+        description: "Mensaje descriptivo del error"
   Column:
     type: object
     properties:
       name:
         type: string
+        description: "Nombre de la columna en la base de datos"
       type:
         type: string
+        description: "Tipo de dato almacenado"
       label:
+        type: string
+        description: "Nombre descriptivo de la columna"
+  Usuario:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
         type: string
   Profesional:
     type: object
     properties:
       profesional_id:
         type: number
+        description: "ID único del profesional"
       persona_apellido:
         type: string
       persona_nombres:
@@ -235,6 +283,7 @@ definitions:
         type: string
       especialidad_id:
         type: number
+        description: "ID de la especialidad del profesional"
       profesional_clinica:
         type: string
       persona_fecha_ingreso:
@@ -247,6 +296,7 @@ definitions:
     properties:
       especialidad_id:
         type: number
+        description: "ID único de la especialidad"
       especialidad_nombre:
         type: string
       especialidad_abreviatura:
@@ -258,12 +308,15 @@ definitions:
     properties:
       turnos_id:
         type: number
+        description: "ID único del turno"
       paciente_id:
         type: number
       profesional_id:
         type: number
+        description: "ID del profesional a cargo del turno"
       efector_id:
         type: number
+        description: "ID del profesional que efectuó el turno (ya sea consulta, estudio, etc.)"
       grupo_atencion_id:
         type: number
       servicio_id:
@@ -274,12 +327,15 @@ definitions:
         type: number
       estado_turno_id:
         type: number
+        description: "ID del estado actual del turno"
       derivador_id:
         type: number
+        description: "ID del profesional que realizó la derivación del turno"
       tipo_turno_fac_id:
         type: number
       tot_id:
         type: number
+        description: "ID del tipo de origen del turno"
       turno_fecha:
         type: string
         format: date
@@ -291,12 +347,15 @@ definitions:
       turno_hora_actual:
         type: string
         format: time
+        description: "Hora de atención efectiva del turno"
       turno_primera_vez:
         type: number
       turno_duracion:
         type: number
+        description: "Duración del turno en minutos"
       turno_factor_duracion:
         type: number
+        description: "Factor de multiplicación de la duración del turno"
       turno_asistencia:
         type: string
       turno_pasado:

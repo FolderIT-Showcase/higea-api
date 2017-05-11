@@ -710,17 +710,31 @@ margin-bottom: 20px;
   <script>
     // Script section to load models into a JS Var
     var defs = {}
+    defs.body = {
+  "type" : "object",
+  "properties" : {
+    "username" : {
+      "type" : "string"
+    },
+    "password" : {
+      "type" : "string"
+    }
+  }
+};
     defs.Column = {
   "type" : "object",
   "properties" : {
     "name" : {
-      "type" : "string"
+      "type" : "string",
+      "description" : "Nombre de la columna en la base de datos"
     },
     "type" : {
-      "type" : "string"
+      "type" : "string",
+      "description" : "Tipo de dato almacenado"
     },
     "label" : {
-      "type" : "string"
+      "type" : "string",
+      "description" : "Nombre descriptivo de la columna"
     }
   }
 };
@@ -729,10 +743,12 @@ margin-bottom: 20px;
   "properties" : {
     "result" : {
       "type" : "boolean",
+      "description" : "El valor siempre será falso",
       "default" : false
     },
     "err" : {
-      "type" : "string"
+      "type" : "string",
+      "description" : "Mensaje descriptivo del error"
     }
   }
 };
@@ -740,7 +756,8 @@ margin-bottom: 20px;
   "type" : "object",
   "properties" : {
     "especialidad_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID único de la especialidad"
     },
     "especialidad_nombre" : {
       "type" : "string"
@@ -757,10 +774,12 @@ margin-bottom: 20px;
   "properties" : {
     "result" : {
       "type" : "boolean",
+      "description" : "Si la respuesta es satisfactoria, esta propiedad será true. De otra forma, será false.",
       "default" : true
     },
-    "data" : {
-      "$ref" : "#/definitions/inline_response_200_data"
+    "token" : {
+      "type" : "string",
+      "description" : "El token debe enviarse en las propiedades de autenticación del header de todas las solicitudes"
     }
   }
 };
@@ -768,6 +787,7 @@ margin-bottom: 20px;
   "properties" : {
     "result" : {
       "type" : "boolean",
+      "description" : "Si la respuesta es satisfactoria, esta propiedad será true. De otra forma, será false.",
       "default" : true
     },
     "data" : {
@@ -780,7 +800,7 @@ margin-bottom: 20px;
     "columns" : {
       "type" : "array",
       "items" : {
-        "$ref" : "#/definitions/inline_response_200_data_columns"
+        "$ref" : "#/definitions/inline_response_200_1_data_columns"
       }
     },
     "rows" : {
@@ -791,18 +811,49 @@ margin-bottom: 20px;
     }
   }
 };
+    defs.inline_response_200_1_data_columns = {
+  "properties" : {
+    "name" : {
+      "type" : "string",
+      "description" : "Nombre de la columna en la base de datos"
+    },
+    "type" : {
+      "type" : "string",
+      "description" : "Tipo de dato almacenado"
+    },
+    "label" : {
+      "type" : "string",
+      "description" : "Nombre descriptivo de la columna"
+    }
+  }
+};
     defs.inline_response_200_1_data_rows = {
   "properties" : {
+    "profesional_id" : {
+      "type" : "number",
+      "description" : "ID único del profesional"
+    },
+    "persona_apellido" : {
+      "type" : "string"
+    },
+    "persona_nombres" : {
+      "type" : "string"
+    },
+    "persona_documento_nro" : {
+      "type" : "string"
+    },
     "especialidad_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID de la especialidad del profesional"
     },
-    "especialidad_nombre" : {
+    "profesional_clinica" : {
       "type" : "string"
     },
-    "especialidad_abreviatura" : {
-      "type" : "string"
+    "persona_fecha_ingreso" : {
+      "type" : "string",
+      "format" : "date"
     },
-    "especialidad_observaciones" : {
+    "persona_observaciones" : {
       "type" : "string"
     }
   }
@@ -811,6 +862,7 @@ margin-bottom: 20px;
   "properties" : {
     "result" : {
       "type" : "boolean",
+      "description" : "Si la respuesta es satisfactoria, esta propiedad será true. De otra forma, será false.",
       "default" : true
     },
     "data" : {
@@ -823,7 +875,7 @@ margin-bottom: 20px;
     "columns" : {
       "type" : "array",
       "items" : {
-        "$ref" : "#/definitions/inline_response_200_data_columns"
+        "$ref" : "#/definitions/inline_response_200_1_data_columns"
       }
     },
     "rows" : {
@@ -836,17 +888,65 @@ margin-bottom: 20px;
 };
     defs.inline_response_200_2_data_rows = {
   "properties" : {
+    "especialidad_id" : {
+      "type" : "number",
+      "description" : "ID único de la especialidad"
+    },
+    "especialidad_nombre" : {
+      "type" : "string"
+    },
+    "especialidad_abreviatura" : {
+      "type" : "string"
+    },
+    "especialidad_observaciones" : {
+      "type" : "string"
+    }
+  }
+};
+    defs.inline_response_200_3 = {
+  "properties" : {
+    "result" : {
+      "type" : "boolean",
+      "description" : "Si la respuesta es satisfactoria, esta propiedad será true. De otra forma, será false.",
+      "default" : true
+    },
+    "data" : {
+      "$ref" : "#/definitions/inline_response_200_3_data"
+    }
+  }
+};
+    defs.inline_response_200_3_data = {
+  "properties" : {
+    "columns" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/definitions/inline_response_200_1_data_columns"
+      }
+    },
+    "rows" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/definitions/inline_response_200_3_data_rows"
+      }
+    }
+  }
+};
+    defs.inline_response_200_3_data_rows = {
+  "properties" : {
     "turnos_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID único del turno"
     },
     "paciente_id" : {
       "type" : "number"
     },
     "profesional_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del profesional a cargo del turno"
     },
     "efector_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del profesional que efectuó el turno (ya sea consulta, estudio, etc.)"
     },
     "grupo_atencion_id" : {
       "type" : "number"
@@ -861,16 +961,19 @@ margin-bottom: 20px;
       "type" : "number"
     },
     "estado_turno_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del estado actual del turno"
     },
     "derivador_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del profesional que realizó la derivación del turno"
     },
     "tipo_turno_fac_id" : {
       "type" : "number"
     },
     "tot_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del tipo de origen del turno"
     },
     "turno_fecha" : {
       "type" : "string",
@@ -885,16 +988,19 @@ margin-bottom: 20px;
     },
     "turno_hora_actual" : {
       "type" : "string",
-      "format" : "time"
+      "format" : "time",
+      "description" : "Hora de atención efectiva del turno"
     },
     "turno_primera_vez" : {
       "type" : "number"
     },
     "turno_duracion" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "Duración del turno en minutos"
     },
     "turno_factor_duracion" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "Factor de multiplicación de la duración del turno"
     },
     "turno_asistencia" : {
       "type" : "string"
@@ -904,72 +1010,16 @@ margin-bottom: 20px;
     }
   }
 };
-    defs.inline_response_200_data = {
-  "properties" : {
-    "columns" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "#/definitions/inline_response_200_data_columns"
-      }
-    },
-    "rows" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "#/definitions/inline_response_200_data_rows"
-      }
-    }
-  }
-};
-    defs.inline_response_200_data_columns = {
-  "properties" : {
-    "name" : {
-      "type" : "string"
-    },
-    "type" : {
-      "type" : "string"
-    },
-    "label" : {
-      "type" : "string"
-    }
-  }
-};
-    defs.inline_response_200_data_rows = {
-  "properties" : {
-    "profesional_id" : {
-      "type" : "number"
-    },
-    "persona_apellido" : {
-      "type" : "string"
-    },
-    "persona_nombres" : {
-      "type" : "string"
-    },
-    "persona_documento_nro" : {
-      "type" : "string"
-    },
-    "especialidad_id" : {
-      "type" : "number"
-    },
-    "profesional_clinica" : {
-      "type" : "string"
-    },
-    "persona_fecha_ingreso" : {
-      "type" : "string",
-      "format" : "date"
-    },
-    "persona_observaciones" : {
-      "type" : "string"
-    }
-  }
-};
     defs.inline_response_400 = {
   "properties" : {
     "result" : {
       "type" : "boolean",
+      "description" : "El valor siempre será falso",
       "default" : false
     },
     "err" : {
-      "type" : "string"
+      "type" : "string",
+      "description" : "Mensaje descriptivo del error"
     }
   }
 };
@@ -977,7 +1027,8 @@ margin-bottom: 20px;
   "type" : "object",
   "properties" : {
     "profesional_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID único del profesional"
     },
     "persona_apellido" : {
       "type" : "string"
@@ -989,7 +1040,8 @@ margin-bottom: 20px;
       "type" : "string"
     },
     "especialidad_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID de la especialidad del profesional"
     },
     "profesional_clinica" : {
       "type" : "string"
@@ -1008,11 +1060,8 @@ margin-bottom: 20px;
   "properties" : {
     "result" : {
       "type" : "boolean",
+      "description" : "Si la respuesta es satisfactoria, esta propiedad será true. De otra forma, será false.",
       "default" : true
-    },
-    "data" : {
-      "type" : "object",
-      "properties" : { }
     }
   }
 };
@@ -1020,16 +1069,19 @@ margin-bottom: 20px;
   "type" : "object",
   "properties" : {
     "turnos_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID único del turno"
     },
     "paciente_id" : {
       "type" : "number"
     },
     "profesional_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del profesional a cargo del turno"
     },
     "efector_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del profesional que efectuó el turno (ya sea consulta, estudio, etc.)"
     },
     "grupo_atencion_id" : {
       "type" : "number"
@@ -1044,16 +1096,19 @@ margin-bottom: 20px;
       "type" : "number"
     },
     "estado_turno_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del estado actual del turno"
     },
     "derivador_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del profesional que realizó la derivación del turno"
     },
     "tipo_turno_fac_id" : {
       "type" : "number"
     },
     "tot_id" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "ID del tipo de origen del turno"
     },
     "turno_fecha" : {
       "type" : "string",
@@ -1068,21 +1123,35 @@ margin-bottom: 20px;
     },
     "turno_hora_actual" : {
       "type" : "string",
-      "format" : "time"
+      "format" : "time",
+      "description" : "Hora de atención efectiva del turno"
     },
     "turno_primera_vez" : {
       "type" : "number"
     },
     "turno_duracion" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "Duración del turno en minutos"
     },
     "turno_factor_duracion" : {
-      "type" : "number"
+      "type" : "number",
+      "description" : "Factor de multiplicación de la duración del turno"
     },
     "turno_asistencia" : {
       "type" : "string"
     },
     "turno_pasado" : {
+      "type" : "string"
+    }
+  }
+};
+    defs.Usuario = {
+  "type" : "object",
+  "properties" : {
+    "username" : {
+      "type" : "string"
+    },
+    "password" : {
       "type" : "string"
     }
   }
@@ -1106,6 +1175,10 @@ margin-bottom: 20px;
                   <li class="nav-header" data-group="Especialidades"><a href="#api-Especialidades">API Methods - Especialidades</a></li>
                     <li data-group="Especialidades" data-name="getEspecialidades" class="">
                       <a href="#api-Especialidades-getEspecialidades">getEspecialidades</a>
+                    </li>
+                  <li class="nav-header" data-group="Login"><a href="#api-Login">API Methods - Login</a></li>
+                    <li data-group="Login" data-name="login" class="">
+                      <a href="#api-Login-login">login</a>
                     </li>
                   <li class="nav-header" data-group="Profesionales"><a href="#api-Profesionales">API Methods - Profesionales</a></li>
                     <li data-group="Profesionales" data-name="getProfesionales" class="">
@@ -1189,7 +1262,7 @@ public class EspecialidadesApiExample {
         EspecialidadesApi apiInstance = new EspecialidadesApi();
         String cliente = cliente_example; // String | Código único del cliente
         try {
-            inline_response_200_1 result = apiInstance.getEspecialidades(cliente);
+            inline_response_200_2 result = apiInstance.getEspecialidades(cliente);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling EspecialidadesApi#getEspecialidades");
@@ -1208,7 +1281,7 @@ public class EspecialidadesApiExample {
         EspecialidadesApi apiInstance = new EspecialidadesApi();
         String cliente = cliente_example; // String | Código único del cliente
         try {
-            inline_response_200_1 result = apiInstance.getEspecialidades(cliente);
+            inline_response_200_2 result = apiInstance.getEspecialidades(cliente);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling EspecialidadesApi#getEspecialidades");
@@ -1228,7 +1301,7 @@ EspecialidadesApi *apiInstance = [[EspecialidadesApi alloc] init];
 
 // Obtener todas las especialidades configuradas en el cliente
 [apiInstance getEspecialidadesWith:cliente
-              completionHandler: ^(inline_response_200_1 output, NSError* error) {
+              completionHandler: ^(inline_response_200_2 output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -1281,7 +1354,7 @@ namespace Example
             try
             {
                 // Obtener todas las especialidades configuradas en el cliente
-                inline_response_200_1 result = apiInstance.getEspecialidades(cliente);
+                inline_response_200_2 result = apiInstance.getEspecialidades(cliente);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -1411,7 +1484,7 @@ except ApiException as e:
                                         var schemaWrapper = {
   "description" : "Consulta exitosa",
   "schema" : {
-    "$ref" : "#/definitions/inline_response_200_1"
+    "$ref" : "#/definitions/inline_response_200_2"
   }
 };
                                         var schema = schemaWrapper.schema;
@@ -1566,6 +1639,362 @@ except ApiException as e:
                       </div>
                       <hr>
                   </section>
+                <section id="api-Login">
+                  <h1>Login</h1>
+                    <div id="api-Login-login">
+                      <article id="api-Login-login-0" data-group="User" data-name="login" data-version="0">
+                        <div class="pull-left">
+                          <h1>login</h1>
+                          <p>Obtención de token de autenticación</p>
+                        </div>
+                        <div class="pull-right"></div>
+                        <div class="clearfix"></div>
+                        <p></p>
+                        <p class="marked">Se debe enviar un usuario y contraseña válidos. Si el usuario es administrador, contará con acceso a todos los clientes. Si no es administrador, sólo podrá realizar operaciones sobre los clientes que tenga habilitados.</p>
+                        <p></p>
+                        <br />
+                        <pre class="prettyprint language-html prettyprinted" data-type="post"><code><span class="pln">/login</span></code></pre>
+                        <p>
+                          <h3>Usage and SDK Samples</h3>
+                        </p>
+                        <ul class="nav nav-tabs nav-tabs-examples">
+                          <li class="active"><a href="#examples-Login-login-0-curl">Curl</a></li>
+                          <li class=""><a href="#examples-Login-login-0-java">Java</a></li>
+                          <li class=""><a href="#examples-Login-login-0-android">Android</a></li>
+                          <!--<li class=""><a href="#examples-Login-login-0-groovy">Groovy</a></li>-->
+                          <li class=""><a href="#examples-Login-login-0-objc">Obj-C</a></li>
+                          <li class=""><a href="#examples-Login-login-0-javascript">JavaScript</a></li>
+                          <!--<li class=""><a href="#examples-Login-login-0-angular">Angular</a></li>-->
+                          <li class=""><a href="#examples-Login-login-0-csharp">C#</a></li>
+                          <li class=""><a href="#examples-Login-login-0-php">PHP</a></li>
+                          <li class=""><a href="#examples-Login-login-0-perl">Perl</a></li>
+                          <li class=""><a href="#examples-Login-login-0-python">Python</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                          <div class="tab-pane active" id="examples-Login-login-0-curl">
+                            <pre class="prettyprint"><code class="language-bsh">curl -X <span style="text-transform: uppercase;">post</span> "http://higea.folderit.net/api/login"</code></pre>
+                          </div>
+                          <div class="tab-pane" id="examples-Login-login-0-java">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.*;
+import io.swagger.client.auth.*;
+import io.swagger.client.model.*;
+import io.swagger.client.api.LoginApi;
+
+import java.io.File;
+import java.util.*;
+
+public class LoginApiExample {
+
+    public static void main(String[] args) {
+        
+        LoginApi apiInstance = new LoginApi();
+        Body body = ; // Body | Datos de usuario a autenticar
+        try {
+            inline_response_200 result = apiInstance.login(body);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling LoginApi#login");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+
+                          <div class="tab-pane" id="examples-Login-login-0-android">
+                            <pre class="prettyprint"><code class="language-java">import io.swagger.client.api.LoginApi;
+
+public class LoginApiExample {
+
+    public static void main(String[] args) {
+        LoginApi apiInstance = new LoginApi();
+        Body body = ; // Body | Datos de usuario a autenticar
+        try {
+            inline_response_200 result = apiInstance.login(body);
+            System.out.println(result);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling LoginApi#login");
+            e.printStackTrace();
+        }
+    }
+}</code></pre>
+                          </div>
+  <!--
+  <div class="tab-pane" id="examples-Login-login-0-groovy">
+  <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+  </div> -->
+                            <div class="tab-pane" id="examples-Login-login-0-objc">
+                              <pre class="prettyprint"><code class="language-cpp">Body *body = ; // Datos de usuario a autenticar
+
+LoginApi *apiInstance = [[LoginApi alloc] init];
+
+// Obtención de token de autenticación
+[apiInstance loginWith:body
+              completionHandler: ^(inline_response_200 output, NSError* error) {
+                            if (output) {
+                                NSLog(@"%@", output);
+                            }
+                            if (error) {
+                                NSLog(@"Error: %@", error);
+                            }
+                        }];
+</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Login-login-0-javascript">
+                              <pre class="prettyprint"><code class="language-js">var HigeaApi = require('higea_api');
+
+var api = new HigeaApi.LoginApi()
+
+var body = ; // {Body} Datos de usuario a autenticar
+
+
+var callback = function(error, data, response) {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('API called successfully. Returned data: ' + data);
+  }
+};
+api.login(body, callback);
+</code></pre>
+                            </div>
+
+                            <!--<div class="tab-pane" id="examples-Login-login-0-angular">
+              <pre class="prettyprint language-json prettyprinted" data-type="json"><code>Coming Soon!</code></pre>
+            </div>-->
+                            <div class="tab-pane" id="examples-Login-login-0-csharp">
+                              <pre class="prettyprint"><code class="language-cs">using System;
+using System.Diagnostics;
+using IO.Swagger.Api;
+using IO.Swagger.Client;
+using IO.Swagger.Model;
+
+namespace Example
+{
+    public class loginExample
+    {
+        public void main()
+        {
+            
+            var apiInstance = new LoginApi();
+            var body = new Body(); // Body | Datos de usuario a autenticar
+
+            try
+            {
+                // Obtención de token de autenticación
+                inline_response_200 result = apiInstance.login(body);
+                Debug.WriteLine(result);
+            }
+            catch (Exception e)
+            {
+                Debug.Print("Exception when calling LoginApi.login: " + e.Message );
+            }
+        }
+    }
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Login-login-0-php">
+                              <pre class="prettyprint"><code class="language-php"><&#63;php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api_instance = new Swagger\Client\Api\LoginApi();
+$body = ; // Body | Datos de usuario a autenticar
+
+try {
+    $result = $api_instance->login($body);
+    print_r($result);
+} catch (Exception $e) {
+    echo 'Exception when calling LoginApi->login: ', $e->getMessage(), PHP_EOL;
+}
+?></code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Login-login-0-perl">
+                              <pre class="prettyprint"><code class="language-perl">use Data::Dumper;
+use WWW::SwaggerClient::Configuration;
+use WWW::SwaggerClient::LoginApi;
+
+my $api_instance = WWW::SwaggerClient::LoginApi->new();
+my $body = WWW::SwaggerClient::Object::Body->new(); # Body | Datos de usuario a autenticar
+
+eval { 
+    my $result = $api_instance->login(body => $body);
+    print Dumper($result);
+};
+if ($@) {
+    warn "Exception when calling LoginApi->login: $@\n";
+}</code></pre>
+                            </div>
+
+                            <div class="tab-pane" id="examples-Login-login-0-python">
+                              <pre class="prettyprint"><code class="language-python">from __future__ import print_statement
+import time
+import swagger_client
+from swagger_client.rest import ApiException
+from pprint import pprint
+
+# create an instance of the API class
+api_instance = swagger_client.LoginApi()
+body =  # Body | Datos de usuario a autenticar
+
+try: 
+    # Obtención de token de autenticación
+    api_response = api_instance.login(body)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling LoginApi->login: %s\n" % e)</code></pre>
+                            </div>
+                          </div>
+
+                          <h2>Parameters</h2>
+
+
+
+                            <div class="methodsubtabletitle">Body parameters</div>
+                            <table id="methodsubtable">
+                              <tr>
+                                <th width="150px">Name</th>
+                                <th>Description</th>
+                              </tr>
+                                <tr><td style="width:150px;">body <span style="color:red;">*</span></td>
+<td>
+
+
+<script>
+												$(document).ready(function() {
+													var schemaWrapper = {
+  "in" : "body",
+  "name" : "body",
+  "description" : "Datos de usuario a autenticar",
+  "required" : true,
+  "schema" : {
+    "$ref" : "#/definitions/body"
+  }
+};
+													
+														var schema = schemaWrapper.schema;
+														schemaWrapper.definitions = defs;
+														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
+														
+
+														
+													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+													 
+													var result = $('#d2e199_login_body');
+													result.empty();
+													result.append(view.render());
+													
+
+													
+    											
+													
+
+
+												});
+
+
+
+												});
+												</script>
+												<div id="d2e199_login_body"></div>
+</td>
+</tr>
+
+                            </table>
+
+
+
+                          <h2>Responses</h2>
+                            <h3> Status: 200 - Login exitoso </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-login-200-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-login-200-schema">
+                                  <div id='responses-login-200-schema-200' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                                               <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Login exitoso",
+  "schema" : {
+    "$ref" : "#/definitions/inline_response_200"
+  }
+};
+                                        var schema = schemaWrapper.schema;
+                                        schemaWrapper.definitions = defs;
+                                        //console.log(JSON.stringify(schema))
+                                        JsonRefs.resolveRefs(schemaWrapper, {
+                                            "depth": 3,
+                                            "resolveRemoteRefs": false,
+                                            "resolveFileRefs": false
+                                        }, function(err, resolved, metadata) {
+                                          //console.log(JSON.stringify(resolved));
+                                          var view = new JSONSchemaView(resolved.schema, 3);
+                                          $('#responses-login-200-schema-data').val(JSON.stringify(resolved.schema));
+                                          var result = $('#responses-login-200-schema-200');
+                                          result.empty();
+                                          result.append(view.render());
+                                        });
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-login-200-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                            <h3> Status: 400 - Solicitud inválida </h3>
+
+                            <ul class="nav nav-tabs nav-tabs-examples" >
+                                <li class="active">
+                                  <a data-toggle="tab" href="#responses-login-400-schema">Schema</a>
+                                </li>
+
+                            </ul>
+
+                            <div class="tab-content" style='margin-bottom: 10px;'>
+                                <div class="tab-pane active" id="responses-login-400-schema">
+                                  <div id='responses-login-400-schema-400' style="padding: 30px; border-left: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;">
+                                                               <script>
+                                      $(document).ready(function() {
+                                        var schemaWrapper = {
+  "description" : "Solicitud inválida",
+  "schema" : {
+    "$ref" : "#/definitions/inline_response_400"
+  }
+};
+                                        var schema = schemaWrapper.schema;
+                                        schemaWrapper.definitions = defs;
+                                        //console.log(JSON.stringify(schema))
+                                        JsonRefs.resolveRefs(schemaWrapper, {
+                                            "depth": 3,
+                                            "resolveRemoteRefs": false,
+                                            "resolveFileRefs": false
+                                        }, function(err, resolved, metadata) {
+                                          //console.log(JSON.stringify(resolved));
+                                          var view = new JSONSchemaView(resolved.schema, 3);
+                                          $('#responses-login-400-schema-data').val(JSON.stringify(resolved.schema));
+                                          var result = $('#responses-login-400-schema-400');
+                                          result.empty();
+                                          result.append(view.render());
+                                        });
+                                      });
+                                    </script>
+                                  </div>
+                                  <input id='responses-login-400-schema-data' type='hidden' value=''></input>
+                                </div>
+                            </div>
+
+                        </article>
+                      </div>
+                      <hr>
+                  </section>
                 <section id="api-Profesionales">
                   <h1>Profesionales</h1>
                     <div id="api-Profesionales-getProfesionales">
@@ -1618,7 +2047,7 @@ public class ProfesionalesApiExample {
         ProfesionalesApi apiInstance = new ProfesionalesApi();
         String cliente = cliente_example; // String | Código único del cliente
         try {
-            inline_response_200 result = apiInstance.getProfesionales(cliente);
+            inline_response_200_1 result = apiInstance.getProfesionales(cliente);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling ProfesionalesApi#getProfesionales");
@@ -1637,7 +2066,7 @@ public class ProfesionalesApiExample {
         ProfesionalesApi apiInstance = new ProfesionalesApi();
         String cliente = cliente_example; // String | Código único del cliente
         try {
-            inline_response_200 result = apiInstance.getProfesionales(cliente);
+            inline_response_200_1 result = apiInstance.getProfesionales(cliente);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling ProfesionalesApi#getProfesionales");
@@ -1657,7 +2086,7 @@ ProfesionalesApi *apiInstance = [[ProfesionalesApi alloc] init];
 
 // Obtener todos los profesionales del cliente
 [apiInstance getProfesionalesWith:cliente
-              completionHandler: ^(inline_response_200 output, NSError* error) {
+              completionHandler: ^(inline_response_200_1 output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -1710,7 +2139,7 @@ namespace Example
             try
             {
                 // Obtener todos los profesionales del cliente
-                inline_response_200 result = apiInstance.getProfesionales(cliente);
+                inline_response_200_1 result = apiInstance.getProfesionales(cliente);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -1840,7 +2269,7 @@ except ApiException as e:
                                         var schemaWrapper = {
   "description" : "Consulta exitosa",
   "schema" : {
-    "$ref" : "#/definitions/inline_response_200"
+    "$ref" : "#/definitions/inline_response_200_1"
   }
 };
                                         var schema = schemaWrapper.schema;
@@ -2047,7 +2476,7 @@ public class TurnosApiExample {
         TurnosApi apiInstance = new TurnosApi();
         String cliente = cliente_example; // String | Código único del cliente
         try {
-            inline_response_200_2 result = apiInstance.getTurnos(cliente);
+            inline_response_200_3 result = apiInstance.getTurnos(cliente);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling TurnosApi#getTurnos");
@@ -2066,7 +2495,7 @@ public class TurnosApiExample {
         TurnosApi apiInstance = new TurnosApi();
         String cliente = cliente_example; // String | Código único del cliente
         try {
-            inline_response_200_2 result = apiInstance.getTurnos(cliente);
+            inline_response_200_3 result = apiInstance.getTurnos(cliente);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling TurnosApi#getTurnos");
@@ -2086,7 +2515,7 @@ TurnosApi *apiInstance = [[TurnosApi alloc] init];
 
 // Obtener los turnos más recientes del cliente
 [apiInstance getTurnosWith:cliente
-              completionHandler: ^(inline_response_200_2 output, NSError* error) {
+              completionHandler: ^(inline_response_200_3 output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -2139,7 +2568,7 @@ namespace Example
             try
             {
                 // Obtener los turnos más recientes del cliente
-                inline_response_200_2 result = apiInstance.getTurnos(cliente);
+                inline_response_200_3 result = apiInstance.getTurnos(cliente);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -2269,7 +2698,7 @@ except ApiException as e:
                                         var schemaWrapper = {
   "description" : "Consulta exitosa",
   "schema" : {
-    "$ref" : "#/definitions/inline_response_200_2"
+    "$ref" : "#/definitions/inline_response_200_3"
   }
 };
                                         var schema = schemaWrapper.schema;
@@ -2474,7 +2903,7 @@ public class TurnosApiExample {
         String cliente = cliente_example; // String | Código único del cliente
         String profesional = profesional_example; // String | ID del Profesional
         try {
-            inline_response_200_2 result = apiInstance.getTurnosProfesional(cliente, profesional);
+            inline_response_200_3 result = apiInstance.getTurnosProfesional(cliente, profesional);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling TurnosApi#getTurnosProfesional");
@@ -2494,7 +2923,7 @@ public class TurnosApiExample {
         String cliente = cliente_example; // String | Código único del cliente
         String profesional = profesional_example; // String | ID del Profesional
         try {
-            inline_response_200_2 result = apiInstance.getTurnosProfesional(cliente, profesional);
+            inline_response_200_3 result = apiInstance.getTurnosProfesional(cliente, profesional);
             System.out.println(result);
         } catch (ApiException e) {
             System.err.println("Exception when calling TurnosApi#getTurnosProfesional");
@@ -2516,7 +2945,7 @@ TurnosApi *apiInstance = [[TurnosApi alloc] init];
 // Obtener los turnos más recientes del profesional
 [apiInstance getTurnosProfesionalWith:cliente
     profesional:profesional
-              completionHandler: ^(inline_response_200_2 output, NSError* error) {
+              completionHandler: ^(inline_response_200_3 output, NSError* error) {
                             if (output) {
                                 NSLog(@"%@", output);
                             }
@@ -2572,7 +3001,7 @@ namespace Example
             try
             {
                 // Obtener los turnos más recientes del profesional
-                inline_response_200_2 result = apiInstance.getTurnosProfesional(cliente, profesional);
+                inline_response_200_3 result = apiInstance.getTurnosProfesional(cliente, profesional);
                 Debug.WriteLine(result);
             }
             catch (Exception e)
@@ -2738,7 +3167,7 @@ except ApiException as e:
                                         var schemaWrapper = {
   "description" : "Consulta exitosa",
   "schema" : {
-    "$ref" : "#/definitions/inline_response_200_2"
+    "$ref" : "#/definitions/inline_response_200_3"
   }
 };
                                         var schema = schemaWrapper.schema;
@@ -2905,7 +3334,7 @@ except ApiException as e:
           </div>
           <div id="generator">
             <div class="content">
-              Generated 2017-05-11T18:28:17.282Z
+              Generated 2017-05-11T19:07:06.709Z
             </div>
           </div>
       </div>
