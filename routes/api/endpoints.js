@@ -12,23 +12,83 @@ var _ = require('lodash'),
 	request = require('request'),
 	Sybase = require('sybase'),
 	SQLAnywhere = require('../../models/SQLAnywhere'),
+	validate = require('express-jsonschema').validate,
 	logger = require('tracer').colorConsole(global.loggerFormat);
 
 class Endpoints {
 	constructor(app) {
+		this.clients = {};
+
+		this.schemas = {
+			get: {
+				"/api/:code/profesionales": {
+					params: {
+						type: 'object',
+						properties: {
+							code: {
+								type: 'string',
+								required: true
+							}
+						}
+					}
+				},
+				"/api/:code/especialidades": {
+					params: {
+						type: 'object',
+						properties: {
+							code: {
+								type: 'string',
+								required: true
+							}
+						}
+					}
+				},
+				"/api/:code/turnos": {
+					params: {
+						type: 'object',
+						properties: {
+							code: {
+								type: 'string',
+								required: true
+							}
+						}
+					}
+				},
+				"/api/:code/turnos/:profesional": {
+					params: {
+						type: 'object',
+						properties: {
+							code: {
+								type: 'string',
+								required: true
+							},
+							profesional: {
+								type: 'string',
+								required: true
+							}
+						}
+					}
+				}
+			},
+			post: {
+			}
+		};
+
 		//Autenticacion
 		app.post('/api/login', this.login.bind(this));
 
 		//Verificacion de token o username+password
 		app.use(this.authenticate.bind(this));
 
-		app.get('/api/:code/profesionales', this.getProfesionales.bind(this));
+		app.get('/api/:code/profesionales', validate(this.schemas.get['/api/:code/profesionales']), this.getProfesionales.bind(this));
 
-		app.get('/api/:code/especialidades', this.getEspecialidades.bind(this));
+		app.get('/api/:code/especialidades', validate(this.schemas.get['/api/:code/especialidades']), this.getEspecialidades.bind(this));
 
-		app.get('/api/:code/turnos', this.getTurnos.bind(this));
+		app.get('/api/:code/turnos', validate(this.schemas.get['/api/:code/turnos']), this.getTurnos.bind(this));
 
-		app.get('/api/:code/turnos/:profesional', this.getTurnosProfesional.bind(this));
+		app.get('/api/:code/turnos/:profesional', validate(this.schemas.get['/api/:code/turnos/:profesional']), this.getTurnosProfesional.bind(this));
+
+		app.use(this.jsonSchemaValidation.bind(this));
 
 		//Verificación de permisos administrativos
 		app.use(this.administrative.bind(this));
@@ -58,8 +118,6 @@ class Endpoints {
 		app.post('/api/removePermit', this.removePermit.bind(this));
 
 		app.post('/api/removeUser', this.removeUser.bind(this));
-
-		this.clients = {};
 	}
 
 	/*
@@ -121,6 +179,31 @@ class Endpoints {
 		});
 	}
 
+	jsonSchemaValidation(err, req, res, next) {
+		var responseData;
+
+		if (err.name === 'JsonSchemaValidation') {
+			logger.error(err);
+			res.status(400);
+
+			responseData = {
+				result: false,
+				err: 'Bad Request',
+				jsonSchemaValidation: true,
+				validations: err.validations
+			};
+
+			if (req.xhr || req.get('Content-Type') === 'application/json') {
+				res.json(responseData);
+				logger.info(responseData);
+			} else {
+				res.send(JSON.stringify(responseData));
+			}
+		} else {
+			next(err);
+		}
+	}
+
 	/*
 	 * Endpoints de autenticación
 	 */
@@ -171,8 +254,6 @@ class Endpoints {
 		var code = req.params.code;
 		var query = SQLAnywhere.Profesionales.find();
 
-		logger.debug(query);
-
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
 				result: true,
@@ -194,8 +275,6 @@ class Endpoints {
 		var code = req.params.code;
 		var query = SQLAnywhere.Especialidades.find();
 
-		logger.debug(query);
-
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
 				result: true,
@@ -216,8 +295,6 @@ class Endpoints {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
 		var query = SQLAnywhere.Turnos.find();
-
-		logger.debug(query);
 
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
@@ -244,8 +321,6 @@ class Endpoints {
 			order: "ORDER BY turno_fecha DESC"
 		});
 
-		logger.debug(query);
-
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
 				result: true,
@@ -263,11 +338,12 @@ class Endpoints {
 	}
 
 	dbQuery(username, code, query) {
+		logger.debug(query);
+
 		return new Promise((resolve, reject) => {
 			this.validate_username(username, code).then((permit) => {
 				return this.validate_client(code);
 			}).then((client) => {
-				logger.debug(client);
 				if (!client) {
 					return reject({
 						message: "El cliente no existe"
@@ -303,7 +379,6 @@ class Endpoints {
 	}
 
 	login(req, res) {
-		logger.debug(req.body);
 		var Users = mongoose.model('Users');
 
 		if (!req.body.rcResponse) {
