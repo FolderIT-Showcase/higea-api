@@ -4,6 +4,7 @@
   "description": "API de servicios REST para la conexión a los productos de la familia Higea.",
   "main": "server.js",
   "scripts": {
+    "start": "node ./server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
@@ -20,7 +21,18 @@
   },
   "homepage": "https://github.com/FolderIT/higea-api#readme",
   "dependencies": {
+    "body-parser": "^1.17.1",
+    "cors": "^2.8.3",
     "express": "^4.15.2",
-    "sqlanywhere": "^1.0.18"
+    "jsonwebtoken": "^7.4.0",
+    "lodash": "^4.17.4",
+    "md5": "^2.2.1",
+    "moment": "^2.18.1",
+    "mongoose": "^4.9.8",
+    "request": "^2.81.0",
+    "serve-favicon": "^2.4.2",
+    "sybase": "https://github.com/mbustos-folderit/node-sybase.git",
+    "toobusy-js": "^0.5.1",
+    "tracer": "^0.8.7"
   }
 }
