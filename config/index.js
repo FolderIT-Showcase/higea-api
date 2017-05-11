@@ -3,19 +3,11 @@ var colors = require('colors');
 module.exports = {
     environment: process.env.NODE_ENV || 'production',
     databases: {
-        production: {
-            Server: 'demo16',
-            UserId: 'DBA',
-            Password: 'sql'
-        },
-        development: {
-            Server: 'demo16',
-            UserId: 'DBA',
-            Password: 'sql'
-        }
+        production: 'mongodb://172.10.10.200:27017/higea-api',
+        development: 'mongodb://172.10.10.200:27017/higea-api'//'mongodb://nodefe:290rh06p@104.237.155.78:27017/nodefe?authSource=user-data'
     },
     tokenSecret: "BeltGasPrepareFence",
-    rcSecret: 'reCAPTCHA secret (pendiente)',
+    rcSecret: "6LcRkCAUAAAAAM6sRJ3yZWk9eediAnBZsWqu3ZKG",
     loggerFormat: {
         format: [
             "{{timestamp}} <{{title}}> {{path}}:{{line}} ({{method}})\n{{message}}",
