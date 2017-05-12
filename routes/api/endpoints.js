@@ -224,10 +224,10 @@ class Endpoints {
 				username: username
 			}).then(function (user) {
 				if (!user)
-					return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
+					return res.status(401).json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
 
 				if (user.password != md5(password))
-					return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
+					return res.status(401).json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
 
 				req.decoded = {
 					"_doc": user
@@ -235,7 +235,7 @@ class Endpoints {
 
 				next();
 			}, function (err) {
-				return res.json({ result: false, err: err.message });
+				return res.status(500).json({ result: false, err: err.message });
 			});
 		}
 
@@ -308,6 +308,10 @@ class Endpoints {
 				}
 			});
 		}).catch((err) => {
+			if (err.status) {
+				res.status(err.status);
+			}
+
 			res.json({
 				result: false,
 				err: err.message
@@ -329,6 +333,10 @@ class Endpoints {
 				}
 			});
 		}).catch((err) => {
+			if (err.status) {
+				res.status(err.status);
+			}
+
 			res.json({
 				result: false,
 				err: err.message
@@ -354,6 +362,10 @@ class Endpoints {
 				}
 			});
 		}).catch((err) => {
+			if (err.status) {
+				res.status(err.status);
+			}
+
 			res.json({
 				result: false,
 				err: err.message
@@ -411,10 +423,10 @@ class Endpoints {
 			username: req.body.username
 		}).then(function (user) {
 			if (!user)
-				return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
+				return res.status(401).json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
 
 			if (user.password != md5(req.body.password))
-				return res.json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
+				return res.status(401).json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
 
 			var token = jwt.sign(user, global.tokenSecret, {
 				expiresIn: 60 * 60 * 24 // Expirar el token en 24 horas
@@ -440,7 +452,7 @@ class Endpoints {
 			request(verificationUrl, (error, response, body) => {
 				if (error) {
 					logger.error(err);
-					return res.json({
+					return res.status(401).json({
 						result: false,
 						err: "Ocurrió un error al intentar verificar el reCAPTCHA. Por favor, intente nuevamente."
 					});
@@ -454,14 +466,14 @@ class Endpoints {
 						token: token
 					});
 				} else {
-					res.json({
+					res.status(401).json({
 						result: false,
 						err: "La verificación reCAPTCHA ha expirado o es inválida. Por favor, intente nuevamente."
 					});
 				}
 			});
 		}, function (err) {
-			return res.json({ result: false, err: err.message });
+			return res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -486,7 +498,7 @@ class Endpoints {
 				next();
 			}
 		}, (err) => {
-			return res.json({
+			return res.status(500).json({
 				result: false,
 				err: err.message
 			});
@@ -502,7 +514,7 @@ class Endpoints {
 				data: clients
 			});
 		}, (err) => {
-			res.json({
+			res.status(500).json({
 				result: false,
 				err: err.message
 			});
@@ -518,7 +530,7 @@ class Endpoints {
 				data: users
 			});
 		}, (err) => {
-			res.json({
+			res.status(500).json({
 				result: false,
 				err: err.message
 			});
@@ -536,7 +548,7 @@ class Endpoints {
 				data: permissions
 			});
 		}, (err) => {
-			res.json({
+			res.status(500).json({
 				result: false,
 				err: err.message
 			});
@@ -550,7 +562,7 @@ class Endpoints {
 			username: req.body.username
 		}).then(function (user) {
 			if (user)
-				return res.json({ result: false, err: "El usuario ya existe" });
+				return res.status(409).json({ result: false, err: "El usuario ya existe" });
 
 			var newUser = req.body;
 			newUser.password = md5(req.body.password);
@@ -560,10 +572,10 @@ class Endpoints {
 			user.save().then(function (user) {
 				res.json({ result: true, data: user });
 			}, function (err) {
-				return res.json({ result: false, err: err.message });
+				return res.status(500).json({ result: false, err: err.message });
 			});
 		}, function (err) {
-			return res.json({ result: false, err: err.message });
+			return res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -575,17 +587,17 @@ class Endpoints {
 			code: req.body.code
 		}).then(function (permit) {
 			if (permit)
-				return res.json({ result: false, err: "El permiso ya existe" });
+				return res.status(409).json({ result: false, err: "El permiso ya existe" });
 
 			var permit = new UserPermissions(req.body);
 
 			permit.save().then(function (permit) {
 				res.json({ result: true, data: permit });
 			}, function (err) {
-				return res.json({ result: false, err: err.message });
+				return res.status(500).json({ result: false, err: err.message });
 			});
 		}, function (err) {
-			return res.json({ result: false, err: err.message });
+			return res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -596,7 +608,7 @@ class Endpoints {
 			code: req.body.code
 		}).then(function (client) {
 			if (client)
-				return res.json({ result: false, err: "El cliente ya existe" });
+				return res.status(409).json({ result: false, err: "El cliente ya existe" });
 
 			var newClient = req.body;
 
@@ -605,10 +617,10 @@ class Endpoints {
 			client.save().then(function (client) {
 				res.json({ result: true, data: client });
 			}, function (err) {
-				return res.json({ result: false, err: err.message });
+				return res.status(500).json({ result: false, err: err.message });
 			});
 		}, function (err) {
-			return res.json({ result: false, err: err.message });
+			return res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -618,16 +630,16 @@ class Endpoints {
 
 		Clients.findById(editedClient._id).then((client) => {
 			if (!client)
-				return res.json({ result: false, err: "El cliente no existe" });
+				return res.status(409).json({ result: false, err: "El cliente no existe" });
 
 			_.merge(client, editedClient);
 			client.save().then((client) => {
 				res.json({ result: true, data: client });
 			}, (err) => {
-				res.json({ result: false, err: err.message });
+				res.status(500).json({ result: false, err: err.message });
 			});
 		}, (err) => {
-			res.json({ result: false, err: err.message });
+			res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -637,16 +649,16 @@ class Endpoints {
 
 		Users.findById(editedUser._id).then((user) => {
 			if (!user)
-				return res.json({ result: false, err: "El usuario no existe" });
+				return res.status(409).json({ result: false, err: "El usuario no existe" });
 
 			_.merge(user, editedUser);
 			user.save().then((user) => {
 				res.json({ result: true, data: user });
 			}, (err) => {
-				res.json({ result: false, err: err.message });
+				res.status(500).json({ result: false, err: err.message });
 			});
 		}, (err) => {
-			res.json({ result: false, err: err.message });
+			res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -656,16 +668,16 @@ class Endpoints {
 
 		UserPermissions.findById(editedPermit._id).then((permit) => {
 			if (!permit)
-				return res.json({ result: false, err: "El permiso no existe" });
+				return res.status(409).json({ result: false, err: "El permiso no existe" });
 
 			_.merge(permit, editedPermit);
 			permit.save().then((permit) => {
 				res.json({ result: true, data: permit });
 			}, (err) => {
-				res.json({ result: false, err: err.message });
+				res.status(500).json({ result: false, err: err.message });
 			});
 		}, (err) => {
-			res.json({ result: false, err: err.message });
+			res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -675,17 +687,17 @@ class Endpoints {
 
 		Users.findById(editedUser._id).then((user) => {
 			if (!user)
-				return res.json({ result: false, err: "El usuario no existe" });
+				return res.status(409).json({ result: false, err: "El usuario no existe" });
 
 			user.password = md5(editedUser.newPassword);
 
 			user.save().then((user) => {
 				res.json({ result: true, data: user });
 			}, (err) => {
-				res.json({ result: false, err: err.message });
+				res.status(500).json({ result: false, err: err.message });
 			});
 		}, (err) => {
-			res.json({ result: false, err: err.message });
+			res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -696,7 +708,7 @@ class Endpoints {
 		Clients.findByIdAndRemove(client._id).exec().then((client) => {
 			res.json({ result: true, data: client });
 		}, (err) => {
-			res.json({ result: false, err: err.message });
+			res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -707,7 +719,7 @@ class Endpoints {
 		UserPermissions.findByIdAndRemove(permit._id).exec().then((permit) => {
 			res.json({ result: true, data: permit });
 		}, (err) => {
-			res.json({ result: false, err: err.message });
+			res.status(500).json({ result: false, err: err.message });
 		});
 	}
 
@@ -718,7 +730,7 @@ class Endpoints {
 		Users.findByIdAndRemove(user._id).exec().then((user) => {
 			res.json({ result: true, data: user });
 		}, (err) => {
-			res.json({ result: false, err: err.message });
+			res.status(500).json({ result: false, err: err.message });
 		});
 	}
 }
