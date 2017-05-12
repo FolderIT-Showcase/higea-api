@@ -232,6 +232,11 @@ responses:
     description: "No tiene permisos suficientes"
     schema:
       $ref: '#/definitions/Error'
+securityDefinitions:
+  basicAuth:
+    type: basic
+security:
+  - basicAuth: []
 definitions:
   Response:
     type: object
