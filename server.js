@@ -38,14 +38,22 @@ db.once('open', function () {
     app.use(express.static(path.join(__dirname, 'public')));
     app.use('/bower_components', express.static(path.join(__dirname, '/bower_components')));
 
+    // Inicialización de rutas
+    index(app);
+
+    // Catch all (404)
+    app.get('*', (req, res) => {
+        res.status(404).json({
+            result: false,
+            err: "Ruta no encontrada"
+        });
+    });
+
     app.listen(process.env.PORT || 80, function () {
         logger.log('Higea API listening on port', (process.env.PORT || 80));
 
         // Inicializacion de modelos de la base de datos
         require('./models');
-
-        // Inicialización de rutas
-        index(app);
 
         logger.info("Operating at maximum efficiency.");
     });
