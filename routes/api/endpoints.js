@@ -16,10 +16,91 @@ var _ = require('lodash'),
 	auth = require('basic-auth'),
 	logger = require('tracer').colorConsole(global.loggerFormat);
 
+var authenticate = function (req, res, next) {
+	var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers['authorization'];
+	var username = req.body.username || req.query.username || req.headers['username'];
+	var password = req.body.password || req.query.password || req.headers['password'];
+
+	var verifyUser = function (username, password) {
+		logger.debug(username, password);
+
+		var Users = mongoose.model('Users');
+
+		Users.findOne({
+			username: username
+		}).then(function (user) {
+			if (!user)
+				return res.status(401).json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
+
+			if (user.password != md5(password))
+				return res.status(401).json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
+
+			req.decoded = {
+				"_doc": user
+			};
+
+			next();
+		}, function (err) {
+			return res.status(500).json({ result: false, err: err.message });
+		});
+	}
+
+	if (token) {
+		jwt.verify(token, global.tokenSecret, function (err, decoded) {
+			if (err) {
+				//Verificar si es un token de Basic Auth
+				var user = auth(req);
+				if (user) {
+					verifyUser(user.name, user.pass);
+				} else {
+					logger.error(err);
+					return res.status(401).json({
+						result: false,
+						err: "No se pudo autenticar."
+					});
+				}
+			} else {
+				req.decoded = decoded;
+				next();
+			}
+		});
+	} else if (username && password) {
+		//Verificar username+password
+		verifyUser(username, password);
+	} else {
+		return res.status(401).json({
+			result: false,
+			err: "Por favor provea los datos para la autenticación."
+		});
+	}
+}
+
+var administrative = function (req, res, next) {
+	var username = req.decoded ? req.decoded._doc.username : "";
+	var Users = mongoose.model('Users');
+
+	Users.findOne({
+		username: username,
+		admin: true
+	}).then((user) => {
+		if (!user) {
+			return res.status(403).json({
+				result: false,
+				err: "El usuario no tiene permisos suficientes."
+			});
+		} else {
+			next();
+		}
+	}, (err) => {
+		return res.status(500).json({
+			result: false,
+			err: err.message
+		});
+	});
+}
+
 class Endpoints {
 	constructor(app) {
-		this.clients = {};
-
 		this.schemas = {
 			get: {
 				"/api/:code/profesionales": {
@@ -38,7 +119,7 @@ class Endpoints {
 						type: 'object',
 						properties: {
 							code: {
-								type: 'string',
+								type: 'number',
 								required: true
 							}
 						}
@@ -79,46 +160,42 @@ class Endpoints {
 		app.post('/api/login', this.login.bind(this));
 
 		//Verificacion de token o username+password
-		app.use(this.authenticate.bind(this));
+		app.get('/api/:code/profesionales', authenticate, validate(this.schemas.get['/api/:code/profesionales']), this.getProfesionales.bind(this));
 
-		app.get('/api/:code/profesionales', validate(this.schemas.get['/api/:code/profesionales']), this.getProfesionales.bind(this));
+		app.get('/api/:code/especialidades', authenticate, validate(this.schemas.get['/api/:code/especialidades']), this.getEspecialidades.bind(this));
 
-		app.get('/api/:code/especialidades', validate(this.schemas.get['/api/:code/especialidades']), this.getEspecialidades.bind(this));
+		app.get('/api/:code/turnos', authenticate, validate(this.schemas.get['/api/:code/turnos']), this.getTurnos.bind(this));
 
-		app.get('/api/:code/turnos', validate(this.schemas.get['/api/:code/turnos']), this.getTurnos.bind(this));
+		app.get('/api/:code/turnos/:profesional', authenticate, validate(this.schemas.get['/api/:code/turnos/:profesional']), this.getTurnosProfesional.bind(this));
 
-		app.get('/api/:code/turnos/:profesional', validate(this.schemas.get['/api/:code/turnos/:profesional']), this.getTurnosProfesional.bind(this));
-
-		app.use(this.jsonSchemaValidation.bind(this));
+		app.use(this.jsonSchemaValidation);
 
 		//Verificación de permisos administrativos
-		app.use(this.administrative.bind(this));
+		app.get('/api/getClients', authenticate, administrative, this.getClients.bind(this));
 
-		app.get('/api/getClients', this.getClients.bind(this));
+		app.get('/api/getUsers', authenticate, administrative, this.getUsers.bind(this));
 
-		app.get('/api/getUsers', this.getUsers.bind(this));
+		app.get('/api/permissions/:username', authenticate, administrative, this.getUserPermissions.bind(this));
 
-		app.get('/api/permissions/:username', this.getUserPermissions.bind(this));
+		app.post('/api/newUser', authenticate, administrative, this.newUser.bind(this));
 
-		app.post('/api/newUser', this.newUser.bind(this));
+		app.post('/api/newPermit', authenticate, administrative, this.newPermit.bind(this));
 
-		app.post('/api/newPermit', this.newPermit.bind(this));
+		app.post('/api/newClient', authenticate, administrative, this.newClient.bind(this));
 
-		app.post('/api/newClient', this.newClient.bind(this));
+		app.post('/api/editClient', authenticate, administrative, this.editClient.bind(this));
 
-		app.post('/api/editClient', this.editClient.bind(this));
+		app.post('/api/editUser', authenticate, administrative, this.editUser.bind(this));
 
-		app.post('/api/editUser', this.editUser.bind(this));
+		app.post('/api/editPermit', authenticate, administrative, this.editPermit.bind(this));
 
-		app.post('/api/editPermit', this.editPermit.bind(this));
+		app.post('/api/resetPassword', authenticate, administrative, this.resetPassword.bind(this));
 
-		app.post('/api/resetPassword', this.resetPassword.bind(this));
+		app.post('/api/removeClient', authenticate, administrative, this.removeClient.bind(this));
 
-		app.post('/api/removeClient', this.removeClient.bind(this));
+		app.post('/api/removePermit', authenticate, administrative, this.removePermit.bind(this));
 
-		app.post('/api/removePermit', this.removePermit.bind(this));
-
-		app.post('/api/removeUser', this.removeUser.bind(this));
+		app.post('/api/removeUser', authenticate, administrative, this.removeUser.bind(this));
 	}
 
 	/*
@@ -190,8 +267,7 @@ class Endpoints {
 
 			responseData = {
 				result: false,
-				err: 'Bad Request',
-				jsonSchemaValidation: true,
+				err: 'Parámetros inválidos',
 				validations: err.validations
 			};
 
@@ -209,65 +285,6 @@ class Endpoints {
 	/*
 	 * Endpoints de autenticación
 	 */
-
-	authenticate(req, res, next) {
-		var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers['authorization'];
-		var username = req.body.username || req.query.username || req.headers['username'];
-		var password = req.body.password || req.query.password || req.headers['password'];
-
-		var verifyUser = function (username, password) {
-			logger.debug(username, password);
-
-			var Users = mongoose.model('Users');
-
-			Users.findOne({
-				username: username
-			}).then(function (user) {
-				if (!user)
-					return res.status(401).json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
-
-				if (user.password != md5(password))
-					return res.status(401).json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
-
-				req.decoded = {
-					"_doc": user
-				};
-
-				next();
-			}, function (err) {
-				return res.status(500).json({ result: false, err: err.message });
-			});
-		}
-
-		if (token) {
-			jwt.verify(token, global.tokenSecret, function (err, decoded) {
-				if (err) {
-					//Verificar si es un token de Basic Auth
-					var user = auth(req);
-					if (user) {
-						verifyUser(user.name, user.pass);
-					} else {
-						logger.error(err);
-						return res.status(401).json({
-							result: false,
-							err: "No se pudo autenticar."
-						});
-					}
-				} else {
-					req.decoded = decoded;
-					next();
-				}
-			});
-		} else if (username && password) {
-			//Verificar username+password
-			verifyUser(username, password);
-		} else {
-			return res.status(401).json({
-				result: false,
-				err: "Por favor provea los datos para la autenticación."
-			});
-		}
-	}
 
 	getProfesionales(req, res) {
 		var username = req.decoded ? req.decoded._doc.username : "";
@@ -480,30 +497,6 @@ class Endpoints {
 	/*
 	 * Endpoints administrativos
 	 */
-
-	administrative(req, res, next) {
-		var username = req.decoded ? req.decoded._doc.username : "";
-		var Users = mongoose.model('Users');
-
-		Users.findOne({
-			username: username,
-			admin: true
-		}).then((user) => {
-			if (!user) {
-				return res.status(403).json({
-					result: false,
-					err: "El usuario no tiene permisos administrativos."
-				});
-			} else {
-				next();
-			}
-		}, (err) => {
-			return res.status(500).json({
-				result: false,
-				err: err.message
-			});
-		});
-	}
 
 	getClients(req, res) {
 		var Clients = mongoose.model('Clients');
