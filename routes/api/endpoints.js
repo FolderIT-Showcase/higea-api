@@ -134,7 +134,7 @@ class Endpoints {
 			}).then((client) => {
 				if (!client) {
 					reject({
-						message: "El cliente no existe o no está habilitado. Contáctese con el Administrador del servicio de Facturación Electrónica."
+						message: "El cliente no existe o no está habilitado."
 					});
 				} else {
 					resolve(client);
@@ -164,7 +164,7 @@ class Endpoints {
 						if (!user) {
 							reject({
 								status: 403,
-								message: "El usuario no tiene permisos para interactuar con el cliente solicitado. Contáctese con el Administrador del servicio de Facturación Electrónica."
+								message: "El usuario no tiene permisos para interactuar con el cliente solicitado."
 							});
 						} else {
 							resolve(user);
