@@ -119,7 +119,7 @@ class Endpoints {
 						type: 'object',
 						properties: {
 							code: {
-								type: 'number',
+								type: 'string',
 								required: true
 							}
 						}
