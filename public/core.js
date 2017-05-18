@@ -394,7 +394,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         $scope.queryResults = {};
         $loading.start('queryResults');
 
-        $http.get('/api/' + $scope.client.code + '/turnos/' + profesional).then(function(res) {
+        $http.get('/api/' + $scope.client.code + '/turnos?profesional_id=' + profesional).then(function(res) {
             $loading.finish('queryResults');
 
             if(res.data.result) {
