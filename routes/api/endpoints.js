@@ -203,8 +203,6 @@ class Endpoints {
 
 		app.get('/api/:code/turnos', authenticate, validate(this.schemas.get['/api/:code/turnos']), this.getTurnos.bind(this));
 
-		app.get('/api/:code/turnos/:profesional', authenticate, validate(this.schemas.get['/api/:code/turnos/:profesional']), this.getTurnosProfesional.bind(this));
-
 		app.use(this.jsonSchemaValidation);
 
 		//Verificación de permisos administrativos
@@ -440,40 +438,6 @@ class Endpoints {
 		});
 
 		logger.debug(query);
-
-		this.dbQuery(username, code, query).then((data) => {
-			res.json({
-				result: true,
-				data: {
-					columns: Turnos.columns,
-					rows: data
-				}
-			});
-		}).catch((err) => {
-			if (err.status) {
-				res.status(err.status);
-			}
-
-			res.json({
-				result: false,
-				err: err.message
-			});
-		});
-	}
-
-	getTurnosProfesional(req, res) {
-		var username = req.decoded ? req.decoded._doc.username : "";
-		var code = req.params.code;
-		var profesional = req.params.profesional;
-		var Turnos = SQLAnywhere.table('Turnos');
-		var query = Turnos.find({
-			where: {
-				profesional_id: profesional
-			},
-			order: {
-				turno_fecha: -1
-			}
-		});
 
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
