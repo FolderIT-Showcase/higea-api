@@ -12,8 +12,9 @@ var _ = require('lodash'),
 	request = require('request'),
 	Sybase = require('sybase'),
 	SQLAnywhere = require('../../models/SQLAnywhere'),
-	validate = require('express-jsonschema').validate,
 	auth = require('basic-auth'),
+	validate = require('express-jsonschema').validate,
+	addSchemaProperties = require('express-jsonschema').addSchemaProperties,
 	logger = require('tracer').colorConsole(global.loggerFormat);
 
 var authenticate = function (req, res, next) {
@@ -153,6 +154,27 @@ class Endpoints {
 			post: {
 			}
 		};
+
+		addSchemaProperties({
+			isDate: function (value, schema, options, ctx) {
+				if (!value) return;
+
+				var valid = moment(value).isValid() === schema.isDate;
+
+				if (!valid) {
+					return "is " + (schema.isDate === true ? "not " : "") + "a valid date";
+				}
+			},
+			isNumber: function (value, schema, options, ctx) {
+				if (!value) return;
+
+				var valid = !isNaN(Number(value)) === schema.isNumber;
+
+				if (!valid) {
+					return "is " + (schema.isNumber === true ? "not " : "") + "a valid number";
+				}
+			}
+		});
 
 		//Autenticacion
 		app.post('/api/login', this.login.bind(this));
