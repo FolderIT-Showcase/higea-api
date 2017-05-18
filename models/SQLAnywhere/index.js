@@ -26,7 +26,17 @@ module.exports = {
                     this.schema[e].table = this.name;
                 });
 
-                Object.keys(this.schema).forEach(e => this.columns.push(Object.assign({}, this.schema[e])));
+                this.rebuildColumns();
+            }
+
+            rebuildColumns() {
+                this.columns = [];
+
+                Object.keys(this.schema).forEach(e => this.columns.push({
+                    name: this.schema[e].name || "",
+                    type: this.schema[e].type || "",
+                    label: this.schema[e].label || ""
+                }));
             }
 
             find(options) {
@@ -142,8 +152,7 @@ module.exports = {
                 this.schema = _.merge(this.schema, table.schema);
 
                 // Reconstruir columnas
-                this.columns = [];
-                Object.keys(this.schema).forEach(e => this.columns.push(Object.assign({}, this.schema[e])));
+                this.rebuildColumns();
             }
         }
 
