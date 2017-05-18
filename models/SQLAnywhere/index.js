@@ -32,11 +32,15 @@ module.exports = {
             find(options) {
                 options = options || {};
 
-                var limit = options.limit || "TOP 100";
+                var limit = "TOP 100";
                 var columns = _.map(this.schema, e => e.schema).join(", ");
                 var where = "";
                 var order = " ORDER BY 1 ";
                 var from = " FROM " + this.table + this.joins;
+
+                if (options.limit) {
+                    limit = "TOP " + options.limit;
+                }
 
                 if (!_.isEmpty(options.where)) {
                     where = " WHERE ";
