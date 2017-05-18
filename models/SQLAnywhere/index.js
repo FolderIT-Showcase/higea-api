@@ -15,15 +15,15 @@ module.exports = {
     table: function (tableName) {
         class Table {
             constructor(modelName) {
-                this.schema = _.merge({}, models[modelName].schema);
+                this.schema = _.merge({}, models[modelName]);
                 this.columns = [];
-                this.table = models[modelName].table;
+                this.name = "dba." + modelName.toLowerCase();
                 this.joins = "";
 
                 Object.keys(this.schema).forEach(e => {
                     this.schema[e].name = e;
-                    this.schema[e].schema = this.table + "." + e;
-                    this.schema[e].table = this.table;
+                    this.schema[e].schema = this.name + "." + e;
+                    this.schema[e].table = this.name;
                 });
 
                 Object.keys(this.schema).forEach(e => this.columns.push(Object.assign({}, this.schema[e])));
@@ -36,7 +36,7 @@ module.exports = {
                 var columns = _.map(this.schema, e => e.schema).join(", ");
                 var where = "";
                 var order = " ORDER BY 1 ";
-                var from = " FROM " + this.table + this.joins;
+                var from = " FROM " + this.name + this.joins;
 
                 if (options.limit) {
                     limit = "TOP " + options.limit;
@@ -45,41 +45,45 @@ module.exports = {
                 if (!_.isEmpty(options.where)) {
                     where = " WHERE ";
                     let i = 0;
+                    let joint = "";
 
                     for (let column in options.where) {
                         let value = options.where[column];
-                        let table = this.table;
+                        let table = this.name;
+                        let type;
+
+                        if (i > 0) {
+                            joint = " AND ";
+                        }
 
                         if (typeof (value) === 'object') {
                             let obj = options.where[column];
-                            let type;
                             value = obj.value;
 
-                            if (i > 0) {
-                                if (obj.joint) {
-                                    where += " " + obj.joint + " ";
-                                } else {
-                                    where += " AND ";
-                                }
+                            if (i > 0 && obj.joint) {
+                                joint = " " + obj.joint + " ";
                             }
 
                             if (obj.table) {
-                                table = obj.table.table;
-                                type = obj.table.schema[column].type.toLowerCase();
+                                if (typeof (obj.table) === 'object') {
+                                    type = obj.table.schema[column].type.toLowerCase();
+                                    table = obj.table.name;
+                                } else {
+                                    type = 'unknown';
+                                    table = obj.table;
+                                }
                             } else {
                                 type = this.schema[column].type.toLowerCase();
                             }
-
-                            if (type !== 'number') {
-                                value = "'" + value + "'";
-                            }
                         } else {
-                            if (i > 0) {
-                                where += " AND ";
-                            }
+                            type = this.schema[column].type.toLowerCase();
                         }
 
-                        where += table + "." + column + " = " + value;
+                        if (type !== 'number' || isNaN(Number(value))) {
+                            value = "'" + value + "'";
+                        }
+
+                        where += joint + table + "." + column + " = " + value;
                         i++;
                     }
                 }
@@ -88,7 +92,7 @@ module.exports = {
                     order = " ORDER BY ";
                     let i = 0;
                     for (let column in options.order) {
-                        let table = this.table;
+                        let table = this.name;
 
                         if (i > 0) {
                             order += " AND ";
@@ -97,7 +101,7 @@ module.exports = {
                         if (typeof (options.order[column]) === 'object') {
                             let obj = options.order[column];
                             if (obj.table) {
-                                table = obj.table.table;
+                                table = obj.table.name;
                             }
                         }
 
@@ -126,9 +130,9 @@ module.exports = {
             }
 
             join(table, column, type = "OUTER") {
-                let leftCol = this.table + "." + column.name;
+                let leftCol = this.name + "." + column.name;
                 let rightCol = column.schema;
-                this.joins += " LEFT " + type + " JOIN " + table.table + " ON " + leftCol + " = " + rightCol + " " + table.joins;
+                this.joins += " LEFT " + type + " JOIN " + table.name + " ON " + leftCol + " = " + rightCol + " " + table.joins;
 
                 // Anexar esquemas
                 this.schema = _.merge(this.schema, table.schema);

@@ -325,8 +325,25 @@ class Endpoints {
 	getProfesionales(req, res) {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
+		var where = {};
+
 		var Profesionales = SQLAnywhere.table('Profesionales');
-		var query = Profesionales.find();
+
+		for (let param in req.query) {
+			if (Profesionales.schema[param]) {
+				let value = req.query[param];
+
+				if (Profesionales.schema[param].type.toLowerCase() === 'date') {
+					value = moment(value).format("YYYY-MM-DD");
+				}
+
+				where[param] = value;
+			}
+		}
+
+		var query = Profesionales.find({
+			where: where
+		});
 
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
@@ -351,8 +368,25 @@ class Endpoints {
 	getEspecialidades(req, res) {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
+		var where = {};
+
 		var Especialidades = SQLAnywhere.table('Especialidades');
-		var query = Especialidades.find();
+
+		for (let param in req.query) {
+			if (Especialidades.schema[param]) {
+				let value = req.query[param];
+
+				if (Especialidades.schema[param].type.toLowerCase() === 'date') {
+					value = moment(value).format("YYYY-MM-DD");
+				}
+
+				where[param] = value;
+			}
+		}
+
+		var query = Especialidades.find({
+			where: where
+		});
 
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
@@ -386,22 +420,16 @@ class Endpoints {
 		Profesionales.join(Especialidades, Especialidades.schema.especialidad_id);
 		Turnos.join(Profesionales, Profesionales.schema.profesional_id);
 
-		if (req.query.turno_fecha && moment(req.query.turno_fecha).isValid()) {
-			where.turno_fecha = moment(req.query.turno_fecha).format("YYYY-MM-DD");
-		}
+		for (let param in req.query) {
+			if (Turnos.schema[param]) {
+				let value = req.query[param];
 
-		if (req.query.especialidad_id && !isNaN(Number(req.query.especialidad_id))) {
-			where.especialidad_id = {
-				value: req.query.especialidad_id,
-				table: Especialidades
-			};
-		}
+				if (Turnos.schema[param].type.toLowerCase() === 'date') {
+					value = moment(value).format("YYYY-MM-DD");
+				}
 
-		if (req.query.profesional_id && !isNaN(Number(req.query.profesional_id))) {
-			where.profesional_id = {
-				value: req.query.profesional_id,
-				table: Profesionales
-			};
+				where[param] = value;
+			}
 		}
 
 		var query = Turnos.find({

@@ -33,9 +33,4 @@ var schema = {
     }
 };
 
-var table = "dba.profesionales";
-
-module.exports = {
-    schema: schema,
-    table: table
-}
+module.exports = schema;

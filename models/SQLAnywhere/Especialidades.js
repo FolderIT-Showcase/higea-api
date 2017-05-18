@@ -17,9 +17,4 @@ var schema = {
     }
 };
 
-var table = "dba.especialidades";
-
-module.exports = {
-    schema: schema,
-    table: table
-}
+module.exports = schema;

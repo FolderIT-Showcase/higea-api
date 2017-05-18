@@ -85,9 +85,4 @@ var schema = {
     }
 };
 
-var table = "dba.turnos";
-
-module.exports = {
-    schema: schema,
-    table: table
-}
+module.exports = schema;
