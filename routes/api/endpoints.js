@@ -22,8 +22,6 @@ var authenticate = function (req, res, next) {
 	var password = req.body.password || req.query.password || req.headers['password'];
 
 	var verifyUser = function (username, password) {
-		logger.debug(username, password);
-
 		var Users = mongoose.model('Users');
 
 		Users.findOne({
@@ -273,7 +271,6 @@ class Endpoints {
 
 			if (req.xhr || req.get('Content-Type') === 'application/json') {
 				res.json(responseData);
-				logger.info(responseData);
 			} else {
 				res.send(JSON.stringify(responseData));
 			}
@@ -391,8 +388,6 @@ class Endpoints {
 	}
 
 	dbQuery(username, code, query) {
-		logger.debug(query);
-
 		return new Promise((resolve, reject) => {
 			this.validate_username(username, code).then((permit) => {
 				return this.validate_client(code);
@@ -409,7 +404,7 @@ class Endpoints {
 					});
 				}
 
-				var db = new Sybase(client.dbHost, client.dbPort, client.dbServernme, client.dbUsername, client.dbPassword);
+				var db = new Sybase(client.dbHost, client.dbPort, client.dbServername, client.dbUsername, client.dbPassword);
 				db.connect((err) => {
 					if (err) {
 						logger.error(err);
