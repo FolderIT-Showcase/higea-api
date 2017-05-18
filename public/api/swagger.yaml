@@ -39,6 +39,8 @@ paths:
           $ref: '#/responses/Login'
         '400':
           $ref: '#/responses/BadRequest'
+        '500':
+          $ref: '#/responses/InternalError'
   '/{cliente}/profesionales':
     get:
       tags:
@@ -47,7 +49,8 @@ paths:
       description: >-
         Se debe especificar el código único del cliente del que se quieren
         obtener los profesionales. Por defecto, se obtienen los primeros 100
-        registros.
+        registros. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
       operationId: getProfesionales
       produces:
         - application/json
@@ -56,6 +59,11 @@ paths:
           in: path
           description: Código único del cliente
           required: true
+          type: string
+        - name: profesional_id
+          in: query
+          description: ID del profesional a consultar.
+          required: false
           type: string
       responses:
         '200':
@@ -66,6 +74,8 @@ paths:
           $ref: '#/responses/Unauthorized'
         '403':
           $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
   '/{cliente}/especialidades':
     get:
       tags:
@@ -73,7 +83,8 @@ paths:
       summary: Obtener todas las especialidades configuradas en el cliente
       description: >-
         Se debe especificar el código único del cliente del que se quieren
-        obtener las especialidades.
+        obtener las especialidades. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
       operationId: getEspecialidades
       produces:
         - application/json
@@ -82,6 +93,11 @@ paths:
           in: path
           description: Código único del cliente
           required: true
+          type: string
+        - name: especialidad_id
+          in: query
+          description: ID de la especialidad a consultar.
+          required: false
           type: string
       responses:
         '200':
@@ -92,6 +108,8 @@ paths:
           $ref: '#/responses/Unauthorized'
         '403':
           $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
   '/{cliente}/turnos':
     get:
       tags:
@@ -100,7 +118,8 @@ paths:
       description: >-
         Se debe especificar el código único del cliente del que se quieren
         obtener los turnos. Por defecto se obtienen los últimos 100 turnos (más
-        recientes)
+        recientes). En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
       operationId: getTurnos
       produces:
         - application/json
@@ -110,37 +129,10 @@ paths:
           description: Código único del cliente
           required: true
           type: string
-      responses:
-        '200':
-          $ref: '#/responses/Turnos'
-        '400':
-          $ref: '#/responses/BadRequest'
-        '401':
-          $ref: '#/responses/Unauthorized'
-        '403':
-          $ref: '#/responses/Forbidden'
-  '/{cliente}/turnos/{profesional}':
-    get:
-      tags:
-        - Turnos
-      summary: Obtener los turnos más recientes del profesional
-      description: >-
-        Se debe especificar el código único del cliente del que se quieren
-        obtener los turnos, y el ID del profesional. Por defecto se obtienen los
-        últimos 100 turnos (más recientes)
-      operationId: getTurnosProfesional
-      produces:
-        - application/json
-      parameters:
-        - name: cliente
-          in: path
-          description: Código único del cliente
-          required: true
-          type: string
-        - name: profesional
-          in: path
-          description: ID del Profesional
-          required: true
+        - name: turnos_id
+          in: query
+          description: ID del turno a consultar.
+          required: false
           type: string
       responses:
         '200':
@@ -151,6 +143,8 @@ paths:
           $ref: '#/responses/Unauthorized'
         '403':
           $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
 responses:
   Login:
     description: Login exitoso
@@ -219,7 +213,10 @@ responses:
                 rows:
                   type: array
                   items:
-                    $ref: '#/definitions/Turno'
+                    allOf:
+                      - $ref: '#/definitions/Especialidad'
+                      - $ref: '#/definitions/Profesional'
+                      - $ref: '#/definitions/Turno'
   BadRequest:
     description: "Solicitud inválida"
     schema:
@@ -230,6 +227,10 @@ responses:
       $ref: '#/definitions/Error'
   Forbidden:
     description: "No tiene permisos suficientes"
+    schema:
+      $ref: '#/definitions/Error'
+  InternalError:
+    description: "Error interno del servidor"
     schema:
       $ref: '#/definitions/Error'
 securityDefinitions:
