@@ -77,6 +77,10 @@ module.exports = {
                             }
                         } else {
                             type = this.schema[column].type.toLowerCase();
+
+                            if (this.schema[column]) {
+                                table = this.schema[column].table;
+                            }
                         }
 
                         if (type !== 'number' || isNaN(Number(value))) {

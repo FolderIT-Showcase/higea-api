@@ -437,8 +437,6 @@ class Endpoints {
 			}
 		});
 
-		logger.debug(query);
-
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
 				result: true,
