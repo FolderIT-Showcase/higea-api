@@ -325,13 +325,14 @@ class Endpoints {
 	getProfesionales(req, res) {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
-		var query = SQLAnywhere.Profesionales.find();
+		var Profesionales = SQLAnywhere.table('Profesionales');
+		var query = Profesionales.find();
 
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
 				result: true,
 				data: {
-					columns: SQLAnywhere.Profesionales.columns,
+					columns: Profesionales.columns,
 					rows: data
 				}
 			});
@@ -350,13 +351,14 @@ class Endpoints {
 	getEspecialidades(req, res) {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
-		var query = SQLAnywhere.Especialidades.find();
+		var Especialidades = SQLAnywhere.table('Especialidades');
+		var query = Especialidades.find();
 
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
 				result: true,
 				data: {
-					columns: SQLAnywhere.Especialidades.columns,
+					columns: Especialidades.columns,
 					rows: data
 				}
 			});
@@ -375,13 +377,47 @@ class Endpoints {
 	getTurnos(req, res) {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
-		var query = SQLAnywhere.Turnos.find();
+		var where = {};
+
+		var Turnos = SQLAnywhere.table('Turnos');
+		var Especialidades = SQLAnywhere.table('Especialidades');
+		var Profesionales = SQLAnywhere.table('Profesionales');
+
+		Profesionales.join(Especialidades, Especialidades.schema.especialidad_id);
+		Turnos.join(Profesionales, Profesionales.schema.profesional_id);
+
+		if (req.query.turno_fecha && moment(req.query.turno_fecha).isValid()) {
+			where.turno_fecha = moment(req.query.turno_fecha).format("YYYY-MM-DD");
+		}
+
+		if (req.query.especialidad_id && !isNaN(Number(req.query.especialidad_id))) {
+			where.especialidad_id = {
+				value: req.query.especialidad_id,
+				table: Especialidades
+			};
+		}
+
+		if (req.query.profesional_id && !isNaN(Number(req.query.profesional_id))) {
+			where.profesional_id = {
+				value: req.query.profesional_id,
+				table: Profesionales
+			};
+		}
+
+		var query = Turnos.find({
+			where: where,
+			order: {
+				turno_fecha: -1
+			}
+		});
+
+		logger.debug(query);
 
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
 				result: true,
 				data: {
-					columns: SQLAnywhere.Turnos.columns,
+					columns: Turnos.columns,
 					rows: data
 				}
 			});
@@ -401,16 +437,21 @@ class Endpoints {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
 		var profesional = req.params.profesional;
-		var query = SQLAnywhere.Turnos.find({
-			where: "WHERE profesional_id = " + profesional,
-			order: "ORDER BY turno_fecha DESC"
+		var Turnos = SQLAnywhere.table('Turnos');
+		var query = Turnos.find({
+			where: {
+				profesional_id: profesional
+			},
+			order: {
+				turno_fecha: -1
+			}
 		});
 
 		this.dbQuery(username, code, query).then((data) => {
 			res.json({
 				result: true,
 				data: {
-					columns: SQLAnywhere.Turnos.columns,
+					columns: Turnos.columns,
 					rows: data
 				}
 			});
