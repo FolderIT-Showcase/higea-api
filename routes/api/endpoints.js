@@ -133,6 +133,23 @@ class Endpoints {
 								required: true
 							}
 						}
+					},
+					query: {
+						type: 'object',
+						properties: {
+							turno_fecha: {
+								type: 'string',
+								isDate: true
+							},
+							especialidad_id: {
+								type: 'string',
+								isNumber: true
+							},
+							profesional_id: {
+								type: 'string',
+								isNumber: true
+							}
+						}
 					}
 				},
 				"/api/:code/turnos/:profesional": {
