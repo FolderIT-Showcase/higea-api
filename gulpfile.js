@@ -29,13 +29,14 @@ gulp.task('frontend', function () {
 });
 
 gulp.task('default', ['frontend'], function () {
-    gulp.watch('./frontend/**/*.html', ['frontend']);
+    gulp.watch(['./frontend/**/*.html', './frontend/**/*.js', './frontend/**/*.css'], ['frontend']);
 
     nodemon({
         script: 'server.js',
         ext: 'js',
         ignore: [
             'public/',
+            'frontend/',
             'node_modules/',
             'bower_components/'
         ]
