@@ -27,11 +27,11 @@
     "ng-lodash": "^0.5.0",
     "angular-toastr": "^2.1.1",
     "angular-moment": "^1.0.1",
-    "angular-loading": "^0.1.4",
     "angular-sanitize": "^1.6.4",
     "angular-recaptcha": "^4.1.0",
     "angular-jwt": "^0.1.9",
-    "datatables-buttons": "^1.3.1"
+    "datatables-buttons": "^1.3.1",
+    "angular-loading-overlay": "^1.1.1"
   },
   "resolutions": {
     "angular": "^1.6.4"
@@ -58,6 +58,11 @@
         "js/buttons.bootstrap.js",
         "css/buttons.dataTables.scss"
       ]
+    },
+    "angular-loading-overlay": {
+      "dependencies": {
+        "angular": "*"
+      }
     }
   }
 }

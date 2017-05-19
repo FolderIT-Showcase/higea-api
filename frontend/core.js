@@ -8,7 +8,7 @@ var app = angular.module('higea-api', [
     'toastr',
     'vcRecaptcha',
     'angular-jwt',
-    'darthwade.dwLoading',
+    'bsLoadingOverlay',
     'ui.bootstrap',
     'datatables',
     'datatables.bootstrap',
@@ -19,10 +19,9 @@ app.service('TEXT_ERRORS', [function() {
     this.ERR_API_CONNECTION = "Error de conexión a la API";
 }]);
 
-app.run(['$rootScope', '$http', '$localStorage', '$loading', 'jwtHelper', '$location', function($rootScope, $http, $localStorage, $loading, jwtHelper, $location) {
-    $loading.setDefaultOptions({
-        text: 'Cargando...',
-        fps: 60
+app.run(['$rootScope', '$http', '$localStorage', 'jwtHelper', '$location', 'bsLoadingOverlayService', function($rootScope, $http, $localStorage, jwtHelper, $location, bsLoadingOverlayService) {
+    bsLoadingOverlayService.setGlobalConfig({
+        templateUrl: '/templates/loading-overlay-template.html'
     });
 
     if ($localStorage.jwt) {
