@@ -88,25 +88,6 @@ app.config(function ($provide, $httpProvider) {
     $httpProvider.interceptors.push('httpAbortInterceptor');
 });
 
-app.controller('MainController', ['$scope', function($scope) {    
-
-}]);
-
-app.controller('NavbarController', ['$scope', '$rootScope', '$localStorage', '$location', 'toastr', function($scope, $rootScope, $localStorage, $location, toastr) {
-    $scope.isCollapsed = true;
-
-    $scope.logout = function() {
-        $localStorage.jwt = undefined;
-        $location.path('/');
-        $rootScope.loggedIn = false;
-        toastr.success("Salida del sistema exitosa");
-    }
-}]);
-
-app.controller('ReportingController', ['$scope', function($scope) {
-
-}]);
-
 app.directive("compareTo", [function() {
     return {
         require: "ngModel",
