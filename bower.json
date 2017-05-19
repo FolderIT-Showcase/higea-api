@@ -25,15 +25,39 @@
     "datatables": "^1.10.13",
     "bootstrap": "^3.3.7",
     "ng-lodash": "^0.5.0",
-    "datatables-buttons": "^1.2.4",
     "angular-toastr": "^2.1.1",
     "angular-moment": "^1.0.1",
     "angular-loading": "^0.1.4",
     "angular-sanitize": "^1.6.4",
     "angular-recaptcha": "^4.1.0",
-    "angular-jwt": "^0.1.9"
+    "angular-jwt": "^0.1.9",
+    "datatables-buttons": "^1.3.1"
   },
   "resolutions": {
     "angular": "^1.6.4"
+  },
+  "overrides": {
+    "angular": {
+      "dependencies": {
+        "jquery": "*"
+      }
+    },
+    "datatables": {
+      "dependencies": {
+        "bootstrap": "*",
+        "angular-bootstrap": "*"
+      }
+    },
+    "datatables-buttons": {
+      "main": [
+        "js/dataTables.buttons.js",
+        "js/buttons.colVis.js",
+        "js/buttons.flash.js",
+        "js/buttons.html5.js",
+        "js/buttons.print.js",
+        "js/buttons.bootstrap.js",
+        "css/buttons.dataTables.scss"
+      ]
+    }
   }
 }

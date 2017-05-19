@@ -38,5 +38,12 @@
     "sybase": "https://github.com/mbustos-folderit/node-sybase.git",
     "toobusy-js": "^0.5.1",
     "tracer": "^0.8.7"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-inject": "^4.2.0",
+    "gulp-nodemon": "^2.2.1",
+    "gulp-rename": "^1.2.2",
+    "main-bower-files": "^2.13.1"
   }
 }
