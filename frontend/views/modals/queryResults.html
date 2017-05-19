@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-md-12">
             <div ng-if="queryResults.columns" class="table-responsive">
-                <table datatable="ng" dt-options="vmQ.dtOptions" dt-column-defs="vmQ.dtColumnDefs" class="table table-custom table-striped table-bordered table-hover">
+                <table datatable="ng" dt-options="vmQ.dtOptions" dt-column-defs="vmQ.dtColumnDefs" class="table table-custom table-striped table-bordered table-hover dataTable">
                     <thead>
                         <tr>
                             <th ng-repeat="column in queryResults.columns">{{column.label}}</th>

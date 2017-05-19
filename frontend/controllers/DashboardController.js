@@ -1,4 +1,4 @@
-app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsBuilder', 'DTColumnDefBuilder', '$uibModal', 'lodash', 'moment', 'toastr', 'bsLoadingOverlayService', '$timeout', function($scope, $filter, $http, DTOptionsBuilder, DTColumnDefBuilder, $uibModal, _, moment, toastr, bsLoadingOverlayService, $timeout) {
+app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsBuilder', 'DTColumnDefBuilder', '$uibModal', 'lodash', 'moment', 'toastr', 'bsLoadingOverlayService', function($scope, $filter, $http, DTOptionsBuilder, DTColumnDefBuilder, $uibModal, _, moment, toastr, bsLoadingOverlayService) {
     $scope.clients = [];
     $scope.users = [];
     $scope.client = {};
@@ -83,26 +83,24 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
     $scope.getClients = function(callback) {
         bsLoadingOverlayService.start({ referenceId: 'clients' });
 
-        $timeout(function() {
-            $http.get('/api/getClients')
-                .then(function(res) {
-                bsLoadingOverlayService.stop({ referenceId: 'clients' });
+        $http.get('/api/getClients')
+            .then(function(res) {
+            bsLoadingOverlayService.stop({ referenceId: 'clients' });
 
-                if(res.data.result) {
-                    $scope.clients = res.data.data;
-                } else {
-                    $scope.clients = [];
-                    toastr.error(res.data.err);
-                }
-
-                if(callback) callback();
-            }, function(res) {
+            if(res.data.result) {
+                $scope.clients = res.data.data;
+            } else {
                 $scope.clients = [];
-                bsLoadingOverlayService.stop({ referenceId: 'clients' });
+                toastr.error(res.data.err);
+            }
 
-                if(callback) callback();
-            });
-        }, 5000);
+            if(callback) callback();
+        }, function(res) {
+            $scope.clients = [];
+            bsLoadingOverlayService.stop({ referenceId: 'clients' });
+
+            if(callback) callback();
+        });
     }
 
     $scope.getUsers = function(callback) {
