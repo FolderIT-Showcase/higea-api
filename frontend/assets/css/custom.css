@@ -76,10 +76,6 @@ hr {
     margin-right: auto;
 }
 
-.table-responsive {
-    overflow-x: visible;
-}
-
 @media screen and (max-width: 767px) {
     .table-responsive {
         overflow-y: auto;
