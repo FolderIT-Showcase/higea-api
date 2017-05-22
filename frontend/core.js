@@ -1,5 +1,4 @@
 var app = angular.module('higea-api', [
-    'ngRoute',
     'ngStorage',
     'ngAnimate',
     'ngLodash',
@@ -10,29 +9,13 @@ var app = angular.module('higea-api', [
     'angular-jwt',
     'bsLoadingOverlay',
     'ui.bootstrap',
+    'ui.router',
     'datatables',
     'datatables.bootstrap',
     'datatables.buttons'
 ]);
 
-app.service('TEXT_ERRORS', [function() {
-    this.ERR_API_CONNECTION = "Error de conexión a la API";
-}]);
-
-app.run(['$rootScope', '$http', '$localStorage', 'jwtHelper', '$location', 'bsLoadingOverlayService', function($rootScope, $http, $localStorage, jwtHelper, $location, bsLoadingOverlayService) {
-    bsLoadingOverlayService.setGlobalConfig({
-        templateUrl: '/templates/loading-overlay-template.html'
-    });
-
-    if ($localStorage.jwt) {
-        $rootScope.loggedIn = true;
-        $http.defaults.headers.common.Authorization = $localStorage.jwt;
-    } else {
-        $rootScope.loggedIn = false;
-    }
-}]);
-
-app.factory('httpAbortInterceptor', ['$q', '$location', '$localStorage', 'jwtHelper', '$injector', '$rootScope', 'TEXT_ERRORS', function ($q, $location, $localStorage, jwtHelper, $injector, $rootScope, TEXT_ERRORS) {
+app.factory('httpAbortInterceptor', ['$q', '$state', '$localStorage', 'jwtHelper', '$injector', '$rootScope', 'TEXT_ERRORS', function ($q, $state, $localStorage, jwtHelper, $injector, $rootScope, TEXT_ERRORS) {
     var canceller = $q.defer();
 
     return {
@@ -55,14 +38,14 @@ app.factory('httpAbortInterceptor', ['$q', '$location', '$localStorage', 'jwtHel
             if (rejection.aborted) {
                 toastr.warning("Su sesión ha expirado. Por favor, reingrese al sistema.");
                 canceller.resolve('Session Expired');
-                $location.path('/');
+                $state.go('main.login');
             } else if (rejection.status === 400) {
                 toastr.warning("Solicitud inválida.");
                 canceller.resolve('Bad Request');
             } else if (rejection.status === 401) {
                 toastr.warning("Su sesión es inválida o ha expirado. Por favor, reingrese al sistema.");
                 canceller.resolve('Unauthorized');
-                $location.path('/');
+                $state.go('main.login');
             } else if (rejection.status === 403) {
                 toastr.warning("Su usuario no tiene permisos para realizar la operación.");
                 canceller.resolve('Forbidden');
@@ -84,48 +67,58 @@ app.factory('httpAbortInterceptor', ['$q', '$location', '$localStorage', 'jwtHel
     };
 }]);
 
-app.config(function ($provide, $httpProvider) {
+app.service('TEXT_ERRORS', [function() {
+    this.ERR_API_CONNECTION = "Error de conexión a la API";
+}]);
+
+app.config(['$provide', '$httpProvider'], function ($provide, $httpProvider) {
     $httpProvider.interceptors.push('httpAbortInterceptor');
 });
 
-app.directive("compareTo", [function() {
-    return {
-        require: "ngModel",
-        scope: {
-            otherModelValue: "=compareTo"
-        },
-        link: function(scope, element, attributes, ngModel) {
-
-            ngModel.$validators.compareTo = function(modelValue) {
-                return modelValue == scope.otherModelValue;
-            };
-
-            scope.$watch("otherModelValue", function() {
-                ngModel.$validate();
-            });
+app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', function($stateProvider, $urlRouterProvider, $locationProvider) {
+    $stateProvider.state('main', {
+        url: '/',
+        abstract: true,
+        views: {
+            'navbar@': {
+                templateUrl: './views/navbar.html',
+                controller: 'NavbarController'
+            }
         }
-    };
-}]);
-
-app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
-    $locationProvider.hashPrefix('');
-
-    $routeProvider
-        .when('/', {
-        templateUrl: 'views/login.html',
-        controller: 'LoginController'
-    })
-        .when('/dashboard', {
-        templateUrl: 'views/dashboard.html',
-        controller: 'DashboardController'
-    })
-        .when('/reportes', {
-        templateUrl: 'views/reportes.html',
-        controller: 'ReportingController'
-    })
-        .otherwise({
-        redirectTo: '/'
     });
+
+    $stateProvider.state('main.login', {
+        url: 'login',
+        views: {
+            'content@': {
+                templateUrl: './views/login.html',
+                controller: 'LoginController'
+            }
+        }
+    });
+
+    $stateProvider.state('main.dashboard', {
+        url: 'dashboard',
+        views: {
+            'content@': {
+                templateUrl: './views/dashboard.html',
+                controller: 'DashboardController'
+            }
+        }
+    });
+
+    $stateProvider.state('main.reportes', {
+        url: 'reportes',
+        views: {
+            'content@': {
+                templateUrl: './views/reportes.html',
+                controller: 'ReportingController'
+            }
+        }
+    });
+
+    $urlRouterProvider.when('/', '/login').otherwise('/login');
+    $locationProvider.hashPrefix('').html5Mode(true);
 }]);
 
 app.config(['toastrConfig', function(toastrConfig) {
@@ -197,3 +190,56 @@ app.filter('queryRow', function() {
         return cell;
     }
 });
+
+app.directive("compareTo", [function() {
+    return {
+        require: "ngModel",
+        scope: {
+            otherModelValue: "=compareTo"
+        },
+        link: function(scope, element, attributes, ngModel) {
+
+            ngModel.$validators.compareTo = function(modelValue) {
+                return modelValue == scope.otherModelValue;
+            };
+
+            scope.$watch("otherModelValue", function() {
+                ngModel.$validate();
+            });
+        }
+    };
+}]);
+
+app.run(['$rootScope', '$http', '$localStorage', 'jwtHelper', 'bsLoadingOverlayService', function($rootScope, $http, $localStorage, jwtHelper, bsLoadingOverlayService) {
+    bsLoadingOverlayService.setGlobalConfig({
+        templateUrl: './templates/loading-overlay.html',
+        delay: 100
+    });
+
+    if ($localStorage.jwt) {
+        $rootScope.loggedIn = true;
+        $http.defaults.headers.common.Authorization = $localStorage.jwt;
+    } else {
+        $rootScope.loggedIn = false;
+    }
+}]);
+
+app.run(['$transitions', '$stateParams', '$rootScope', '$timeout', 'bsLoadingOverlayService', function($transitions, $stateParams, $rootScope, $timeout, bsLoadingOverlayService) {    
+    $transitions.onStart({
+        to: 'main.**'
+    }, function(transition) {
+        $rootScope.transitionOverlay = true;
+        //        bsLoadingOverlayService.start({
+        //            referenceId: 'navbar'
+        //        });
+
+        transition.promise.finally(function() {
+            $timeout(function() {
+                $rootScope.transitionOverlay = false;
+                //                bsLoadingOverlayService.stop({
+                //                    referenceId: 'navbar'
+                //                });
+            }, 500);
+        });
+    });
+}]);

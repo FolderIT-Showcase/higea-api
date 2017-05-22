@@ -1,6 +1,6 @@
-app.controller('LoginController', ['$scope', '$rootScope', '$http', '$location', '$localStorage', 'toastr', 'bsLoadingOverlayService', 'vcRecaptchaService', function($scope, $rootScope, $http, $location, $localStorage, toastr, bsLoadingOverlayService, vcRecaptchaService) {    
+app.controller('LoginController', ['$scope', '$rootScope', '$http', '$state', '$localStorage', 'toastr', 'bsLoadingOverlayService', 'vcRecaptchaService', function($scope, $rootScope, $http, $state, $localStorage, toastr, bsLoadingOverlayService, vcRecaptchaService) {    
     if ($localStorage.jwt) {
-        $location.path('dashboard');
+        $state.go('main.dashboard');
     }
 
     $scope.response = null;
@@ -38,7 +38,7 @@ app.controller('LoginController', ['$scope', '$rootScope', '$http', '$location',
                 $http.defaults.headers.common.Authorization = res.data.token;
 
                 toastr.success("¡Bienvenido al nuevo sistema de administración Higea API!");
-                $location.path('dashboard');
+                $state.go('main.dashboard');
             } else {
                 toastr.error(res.data.err);
                 //vcRecaptchaService.reload($scope.widgetId);

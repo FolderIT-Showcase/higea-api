@@ -42,11 +42,15 @@ db.once('open', function () {
     index(app);
 
     // Catch all (404)
-    app.get('*', (req, res) => {
+    app.get('/api/*', (req, res) => {
         res.status(404).json({
             result: false,
             err: "Ruta no encontrada"
         });
+    });
+
+    app.get('/*', function (req, res) {
+        res.sendFile(__dirname + '/public/index.html')
     });
 
     app.listen(process.env.PORT || 80, function () {

@@ -87,19 +87,17 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
             .then(function(res) {
             bsLoadingOverlayService.stop({ referenceId: 'clients' });
 
-            if(res.data.result) {
+            if (res.data.result) {
                 $scope.clients = res.data.data;
+
+                if (callback) callback();
             } else {
                 $scope.clients = [];
                 toastr.error(res.data.err);
             }
-
-            if(callback) callback();
         }, function(res) {
             $scope.clients = [];
             bsLoadingOverlayService.stop({ referenceId: 'clients' });
-
-            if(callback) callback();
         });
     }
 
@@ -112,17 +110,15 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
 
             if(res.data.result) {
                 $scope.users = res.data.data;
+
+                if (callback) callback();
             } else {
                 $scope.users = [];
                 toastr.error(res.data.err);
             }
-
-            if(callback) callback();
         }, function(res) {
             $scope.users = [];
             bsLoadingOverlayService.stop({ referenceId: 'users' });
-
-            if(callback) callback();
         });
     }
 

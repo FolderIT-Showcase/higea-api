@@ -1,3 +1,2 @@
-app.controller('MainController', ['$scope', function($scope) {    
-    $scope.isNavCollapsed = true;
+app.controller('MainController', ['$scope', function($scope) {   
 }]);
