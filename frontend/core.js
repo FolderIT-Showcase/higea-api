@@ -71,9 +71,9 @@ app.service('TEXT_ERRORS', [function() {
     this.ERR_API_CONNECTION = "Error de conexión a la API";
 }]);
 
-app.config(['$provide', '$httpProvider'], function ($provide, $httpProvider) {
+app.config(['$provide', '$httpProvider', function ($provide, $httpProvider) {
     $httpProvider.interceptors.push('httpAbortInterceptor');
-});
+}]);
 
 app.config(['$stateProvider', '$urlRouterProvider', '$locationProvider', function($stateProvider, $urlRouterProvider, $locationProvider) {
     $stateProvider.state('main', {
@@ -149,7 +149,7 @@ app.config(['toastrConfig', function(toastrConfig) {
     });
 }]);
 
-app.filter('queryRow', function() {
+app.filter('queryRow', [function() {
     return function(cell, type) {
         switch (type) {
             case "Number":
@@ -189,7 +189,7 @@ app.filter('queryRow', function() {
 
         return cell;
     }
-});
+}]);
 
 app.directive("compareTo", [function() {
     return {
