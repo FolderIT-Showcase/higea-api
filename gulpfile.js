@@ -4,6 +4,8 @@ var bowerFiles = require('main-bower-files'),
     rename = require('gulp-rename'),
     minify = require('gulp-minify'),
     nodemon = require('gulp-nodemon'),
+    htmlmin = require('gulp-htmlmin'),
+    cleanCSS = require('gulp-clean-css'),
     exists = require('path-exists').sync;
 
 var bowerFilesMin = bowerFiles().map((path, index, arr) => {
@@ -13,6 +15,8 @@ var bowerFilesMin = bowerFiles().map((path, index, arr) => {
 
 gulp.task('frontend', function () {
     var cssFiles = gulp.src(['./frontend/**/*.css', '!./frontend/api/**'])
+        .pipe(cleanCSS({ compatibility: 'ie8', level: 2 }))
+        .pipe(rename({ suffix: '.min' }))
         .pipe(gulp.dest('./public'));
 
     var jsFiles = gulp.src(['./frontend/**/*.js', '!./frontend/api/**'])
@@ -24,15 +28,17 @@ gulp.task('frontend', function () {
         .pipe(inject(cssFiles, { ignorePath: 'public' }))
         .pipe(inject(jsFiles, { ignorePath: 'public' }))
         .pipe(rename('index.html'))
+        .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest('./public'));
 
-    gulp.src(['./frontend/api/**'])
+    gulp.src(['./frontend/api/**'], { read: false })
         .pipe(gulp.dest('./public/api'));
 
     gulp.src(['./frontend/**/*.html', '!./frontend/api/**', '!./frontend/src.html'])
+        .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest('./public'));
 
-    gulp.src(['./frontend/assets/**'])
+    gulp.src(['./frontend/assets/**', '!./frontend/assets/**/*.css', '!./frontend/assets/**/*.js'], { read: false })
         .pipe(gulp.dest('./public/assets'));
 });
 
