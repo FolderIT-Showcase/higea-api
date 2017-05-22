@@ -49,6 +49,9 @@
       }
     },
     "datatables-buttons": {
+      "dependencies": {
+        "datatables": "*"
+      },
       "main": [
         "js/dataTables.buttons.js",
         "js/buttons.colVis.js",
@@ -62,6 +65,11 @@
     "angular-loading-overlay": {
       "dependencies": {
         "angular": "*"
+      }
+    },
+    "angular-datatables": {
+      "dependencies": {
+        "datatables": "*"
       }
     }
   }
