@@ -292,11 +292,14 @@ definitions:
         description: "ID de la especialidad del profesional"
       profesional_clinica:
         type: string
+        description: "Indica si el profesional es interno de la clínica ('S') o no ('N')"
       persona_fecha_ingreso:
         type: string
         format: date
+        description: "Fecha de ingreso del profesional"
       persona_observaciones:
         type: string
+        description: "Observaciones del profesional"
   Especialidad:
     type: object
     properties:
@@ -305,10 +308,13 @@ definitions:
         description: "ID único de la especialidad"
       especialidad_nombre:
         type: string
+        description: "Nombre de la especialidad"
       especialidad_abreviatura:
         type: string
+        description: "Abreviatura de la especialidad"
       especialidad_observaciones:
         type: string
+        description: "Observaciones de la especialidad"
   Turno:
     type: object
     properties:
@@ -317,20 +323,24 @@ definitions:
         description: "ID único del turno"
       paciente_id:
         type: number
+        description: "ID del paciente"
       profesional_id:
         type: number
         description: "ID del profesional a cargo del turno"
       efector_id:
         type: number
-        description: "ID del profesional que efectuó el turno (ya sea consulta, estudio, etc.)"
+        description: "ID del profesional que efectua la práctica"
       grupo_atencion_id:
         type: number
       servicio_id:
         type: number
+        description: "ID del servicio del turno"
       obra_social_id:
         type: number
+        description: "ID de obra social"
       plan_os_id:
         type: number
+        description: "ID del plan de obra social"
       estado_turno_id:
         type: number
         description: "ID del estado actual del turno"
@@ -339,30 +349,42 @@ definitions:
         description: "ID del profesional que realizó la derivación del turno"
       tipo_turno_fac_id:
         type: number
+        description: "ID del tipo de turno (episodio, consulta, ...)"
       tot_id:
         type: number
         description: "ID del tipo de origen del turno"
+      turno_tipo_turno:
+        type: number
+        description: "ID del tipo de consulta"
       turno_fecha:
         type: string
         format: date
+        description: "Fecha del turno"
       turno_hora:
         type: string
         format: time
+        description: "Hora del turno"
       turno_sobreturno:
         type: string
+        description: "Indica si el turno es sobreturno ('S') o no ('N')"
+        default: "S"
       turno_hora_actual:
         type: string
         format: time
         description: "Hora de atención efectiva del turno"
       turno_primera_vez:
         type: number
+        description: "Indica si el turno es Primera Vez (1) o no (0)"
       turno_duracion:
         type: number
         description: "Duración del turno en minutos"
       turno_factor_duracion:
         type: number
-        description: "Factor de multiplicación de la duración del turno"
+        description: "Factor de multiplicación de la duración del turno. Ejemplo: duración 30, factor 3: turno de 90 minutos de duración"
+        default: 1
       turno_asistencia:
         type: string
+        default: "N"
       turno_pasado:
         type: string
+        default: "N"
