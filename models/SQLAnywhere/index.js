@@ -156,6 +156,52 @@ module.exports = {
             }
         }
 
+module.exports = {
+    table: function (tableName) {
         return new Table(tableName);
+    },
+    validate: function (tableName) {
+        var objValidate = {};
+        var schema = models[tableName];
+
+        Object.keys(schema).forEach(e => {
+            var column = schema[e];
+            var type = column.type ? column.type.toLowerCase() : "string";
+
+            objValidate[e] = {};
+
+            switch (type) {
+                case "date":
+                    objValidate[e].isDate = true;
+                    objValidate[e].type = "string";
+                    break;
+
+                case "time":
+                    objValidate[e].isTime = true;
+                    objValidate[e].type = "string";
+                    break;
+
+                // case "number":
+                //     objValidate[e].isNumber = true;
+                //     break;
+
+                default:
+                    objValidate[e].type = type;
+            }
+
+            if (column.enum !== undefined) {
+                objValidate[e].enum = column.enum;
+            }
+
+            if (column.default !== undefined) {
+                objValidate[e].default = column.default;
+            }
+
+            if (column.required === true) {
+                objValidate[e].required = true;
+            }
+        });
+
+        return objValidate;
     }
 }
