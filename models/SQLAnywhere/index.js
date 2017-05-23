@@ -11,150 +11,167 @@ fs.readdirSync(__dirname).forEach(function (file) {
     }
 });
 
-module.exports = {
-    table: function (tableName) {
-        class Table {
-            constructor(modelName) {
-                this.schema = _.merge({}, models[modelName]);
-                this.columns = [];
-                this.name = "dba." + modelName.toLowerCase();
-                this.joins = "";
+class Table {
+    constructor(tableName) {
+        this.schema = _.merge({}, models[tableName]);
+        this.columns = [];
+        this.name = "dba." + tableName.toLowerCase();
+        this.joins = "";
 
-                Object.keys(this.schema).forEach(e => {
-                    this.schema[e].name = e;
-                    this.schema[e].schema = this.name + "." + e;
-                    this.schema[e].table = this.name;
-                });
+        Object.keys(this.schema).forEach(e => {
+            this.schema[e].name = e;
+            this.schema[e].schema = this.name + "." + e;
+            this.schema[e].table = this.name;
+        });
 
-                this.rebuildColumns();
-            }
+        this.rebuildColumns();
+    }
 
-            rebuildColumns() {
-                this.columns = [];
+    rebuildColumns() {
+        this.columns = [];
 
-                Object.keys(this.schema).forEach(e => this.columns.push({
-                    name: this.schema[e].name || "",
-                    type: this.schema[e].type || "",
-                    label: this.schema[e].label || ""
-                }));
-            }
+        Object.keys(this.schema).forEach(e => this.columns.push({
+            name: this.schema[e].name || "",
+            type: this.schema[e].type || "",
+            label: this.schema[e].label || ""
+        }));
+    }
 
-            find(options) {
-                options = options || {};
+    find(options) {
+        options = options || {};
 
-                var limit = "TOP 100";
-                var columns = _.map(this.schema, e => e.schema).join(", ");
-                var where = "";
-                var order = " ORDER BY 1 ";
-                var from = " FROM " + this.name + this.joins;
+        var limit = "TOP 100";
+        var columns = _.map(this.schema, e => e.schema).join(", ");
+        var where = "";
+        var order = " ORDER BY 1 ";
+        var from = " FROM " + this.name + this.joins;
 
-                if (options.limit) {
-                    limit = "TOP " + options.limit;
+        if (options.limit) {
+            limit = "TOP " + options.limit;
+        }
+
+        if (!_.isEmpty(options.where)) {
+            where = " WHERE ";
+            let i = 0;
+            let joint = "";
+            let conditions = "";
+
+            for (let column in options.where) {
+                let value = options.where[column];
+                let table = this.name;
+                let type;
+
+                if (i > 0) {
+                    joint = " AND ";
                 }
 
-                if (!_.isEmpty(options.where)) {
-                    where = " WHERE ";
-                    let i = 0;
-                    let joint = "";
+                if (typeof (value) === 'object') {
+                    let obj = options.where[column];
+                    value = obj.value;
 
-                    for (let column in options.where) {
-                        let value = options.where[column];
-                        let table = this.name;
-                        let type;
+                    if (i > 0 && obj.joint) {
+                        joint = " " + obj.joint + " ";
+                    }
 
-                        if (i > 0) {
-                            joint = " AND ";
-                        }
-
-                        if (typeof (value) === 'object') {
-                            let obj = options.where[column];
-                            value = obj.value;
-
-                            if (i > 0 && obj.joint) {
-                                joint = " " + obj.joint + " ";
+                    if (obj.table) {
+                        if (typeof (obj.table) === 'object') {
+                            if (!obj.table.schema[column]) {
+                                continue;
                             }
 
-                            if (obj.table) {
-                                if (typeof (obj.table) === 'object') {
-                                    type = obj.table.schema[column].type.toLowerCase();
-                                    table = obj.table.name;
-                                } else {
-                                    type = 'unknown';
-                                    table = obj.table;
-                                }
-                            } else {
-                                type = this.schema[column].type.toLowerCase();
-                            }
+                            type = obj.table.schema[column].type.toLowerCase();
+                            table = obj.table.name;
                         } else {
-                            type = this.schema[column].type.toLowerCase();
-
-                            if (this.schema[column]) {
-                                table = this.schema[column].table;
-                            }
+                            type = 'unknown';
+                            table = obj.table;
+                        }
+                    } else {
+                        if (!this.schema[column]) {
+                            continue;
                         }
 
-                        if (type !== 'number' || isNaN(Number(value))) {
-                            value = "'" + value + "'";
-                        }
+                        type = this.schema[column].type.toLowerCase();
+                    }
+                } else {
+                    if (!this.schema[column]) {
+                        continue;
+                    }
 
-                        where += joint + table + "." + column + " = " + value;
-                        i++;
+                    type = this.schema[column].type.toLowerCase();
+
+                    if (this.schema[column]) {
+                        table = this.schema[column].table;
                     }
                 }
 
-                if (!_.isEmpty(options.order)) {
-                    order = " ORDER BY ";
-                    let i = 0;
-                    for (let column in options.order) {
-                        let table = this.name;
-
-                        if (i > 0) {
-                            order += " AND ";
-                        }
-
-                        if (typeof (options.order[column]) === 'object') {
-                            let obj = options.order[column];
-                            if (obj.table) {
-                                table = obj.table.name;
-                            }
-                        }
-
-                        let asc = options.order[column];
-                        if (asc === 1) {
-                            asc = " ASC";
-                        } else if (asc === -1) {
-                            asc = " DESC";
-                        } else {
-                            asc = "";
-                        }
-
-                        order += table + "." + column + asc;
-                        i++;
-                    }
+                if (type !== 'number' || isNaN(Number(value))) {
+                    value = "'" + value + "'";
                 }
 
-                var query = " SELECT ";
-                query += " " + limit + " ";
-                query += " " + columns + " \n\n";
-                query += " " + from + " \n\n";
-                query += " " + where + " \n\n";
-                query += " " + order + " ";
-
-                return query;
+                conditions += joint + table + "." + column + " = " + value;
+                i++;
             }
 
-            join(table, column, type = "OUTER") {
-                let leftCol = this.name + "." + column.name;
-                let rightCol = column.schema;
-                this.joins += " LEFT " + type + " JOIN " + table.name + " ON " + leftCol + " = " + rightCol + " " + table.joins;
-
-                // Anexar esquemas
-                this.schema = _.merge(this.schema, table.schema);
-
-                // Reconstruir columnas
-                this.rebuildColumns();
+            if (conditions) {
+                where += conditions;
+            } else {
+                where = "";
             }
         }
+
+        if (!_.isEmpty(options.order)) {
+            order = " ORDER BY ";
+            let i = 0;
+            for (let column in options.order) {
+                let table = this.name;
+
+                if (i > 0) {
+                    order += " AND ";
+                }
+
+                if (typeof (options.order[column]) === 'object') {
+                    let obj = options.order[column];
+                    if (obj.table) {
+                        table = obj.table.name;
+                    }
+                }
+
+                let asc = options.order[column];
+                if (asc === 1) {
+                    asc = " ASC";
+                } else if (asc === -1) {
+                    asc = " DESC";
+                } else {
+                    asc = "";
+                }
+
+                order += table + "." + column + asc;
+                i++;
+            }
+        }
+
+        var query = " SELECT ";
+        query += " " + limit + " ";
+        query += " " + columns + " \n\n";
+        query += " " + from + " \n\n";
+        query += " " + where + " \n\n";
+        query += " " + order + " ";
+
+        return query;
+    }
+
+    join(table, column, type = "OUTER") {
+        let leftCol = this.name + "." + column.name;
+        let rightCol = column.schema;
+        this.joins += " LEFT " + type + " JOIN " + table.name + " ON " + leftCol + " = " + rightCol + " " + table.joins;
+
+        // Anexar esquemas
+        this.schema = _.merge(this.schema, table.schema);
+
+        // Reconstruir columnas
+        this.rebuildColumns();
+    }
+}
 
 module.exports = {
     table: function (tableName) {
