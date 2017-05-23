@@ -13,9 +13,95 @@ var _ = require('lodash'),
 	Sybase = require('sybase'),
 	SQLAnywhere = require('../../models/SQLAnywhere'),
 	auth = require('basic-auth'),
-	validate = require('express-jsonschema').validate,
 	addSchemaProperties = require('express-jsonschema').addSchemaProperties,
 	logger = require('tracer').colorConsole(global.loggerFormat);
+
+var schemas = {
+	get: {
+		"/api/:code/profesionales": {
+			params: {
+				type: 'object',
+				properties: {
+					code: {
+						type: 'string',
+						required: true
+					}
+				}
+			}
+		},
+		"/api/:code/especialidades": {
+			params: {
+				type: 'object',
+				properties: {
+					code: {
+						type: 'string',
+						required: true
+					}
+				}
+			}
+		},
+		"/api/:code/turnos": {
+			params: {
+				type: 'object',
+				properties: {
+					code: {
+						type: 'string',
+						required: true
+					}
+				}
+			},
+			query: {
+				type: 'object',
+				properties: {
+					turno_fecha: {
+						type: 'string',
+						isDate: true
+					},
+					especialidad_id: {
+						type: 'string',
+						isNumber: true
+					},
+					profesional_id: {
+						type: 'string',
+						isNumber: true
+					}
+				}
+			}
+		},
+		"/api/:code/turnos/:profesional": {
+			params: {
+				type: 'object',
+				properties: {
+					code: {
+						type: 'string',
+						required: true
+					},
+					profesional: {
+						type: 'string',
+						required: true
+					}
+				}
+			}
+		}
+	},
+	post: {
+		"/api/:code/turno": {
+			params: {
+				type: "object",
+				properties: {
+					code: {
+						type: "string",
+						required: true
+					}
+				}
+			},
+			body: {
+				type: "object",
+				properties: SQLAnywhere.validate('Turnos')
+			}
+		}
+	}
+};
 
 var authenticate = function (req, res, next) {
 	var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers['authorization'];
@@ -98,80 +184,75 @@ var administrative = function (req, res, next) {
 	});
 }
 
+var validate = function (req, res, next) {
+	var path = req.route.path;
+	var method = req.method.toLowerCase();
+	var schema = {};
+
+	if (schemas[method] && schemas[method][path]) {
+		schema = schemas[method][path];
+
+		// Añadir las propiedades por default en el body
+		Object.keys(schema).forEach((s) => {
+			var properties = schema[s].properties;
+			if (!properties) {
+				return;
+			}
+			Object.keys(properties).forEach((p) => {
+				var prop = properties[p];
+				if (prop.default !== undefined) {
+					req[s][p] = prop.default;
+				}
+			});
+		});
+	}
+
+	return require('express-jsonschema').validate(schema)(req, res, next);
+}
+
+var queryBuilder = function (req, res, next) {
+	let path = req.route.path;
+	let method = req.method.toLowerCase();
+	let where = {};
+
+	if (schemas[method] && schemas[method][path]) {
+		let schema = schemas[method][path].query || {};
+
+		if (schema && schema.properties) {
+			schema = schema.properties;
+		}
+
+		for (let q in req.query) {
+			let value = req.query[q];
+
+			if (schema[q]) {
+				let type = schema[q].type ? schema[q].type.toLowerCase() : "string";
+
+				if (type === 'date' || (type === 'string' && schema[q].isDate === true)) {
+					value = moment(value).format("YYYY-MM-DD");
+				}
+
+				if (type === 'time' || (type === 'string' && schema[q].isTime === true)) {
+					let time = moment(value, "HH:mm:ss").isValid() ? moment(value, "HH:mm:ss") : moment(value, "HH:mm").isValid() ? moment(value, "HH:mm") : moment(value, "HH");
+					value = time.format("HH:mm:ss");
+				}
+
+				if (type === 'number' || (type === 'string' && schema[q].isNumber === true)) {
+					value = Number(value);
+				}
+			}
+
+			where[q] = value;
+		}
+	}
+
+	req.queryWhere = where;
+
+	next();
+}
+
 class Endpoints {
 	constructor(app) {
-		this.schemas = {
-			get: {
-				"/api/:code/profesionales": {
-					params: {
-						type: 'object',
-						properties: {
-							code: {
-								type: 'string',
-								required: true
-							}
-						}
-					}
-				},
-				"/api/:code/especialidades": {
-					params: {
-						type: 'object',
-						properties: {
-							code: {
-								type: 'string',
-								required: true
-							}
-						}
-					}
-				},
-				"/api/:code/turnos": {
-					params: {
-						type: 'object',
-						properties: {
-							code: {
-								type: 'string',
-								required: true
-							}
-						}
-					},
-					query: {
-						type: 'object',
-						properties: {
-							turno_fecha: {
-								type: 'string',
-								isDate: true
-							},
-							especialidad_id: {
-								type: 'string',
-								isNumber: true
-							},
-							profesional_id: {
-								type: 'string',
-								isNumber: true
-							}
-						}
-					}
-				},
-				"/api/:code/turnos/:profesional": {
-					params: {
-						type: 'object',
-						properties: {
-							code: {
-								type: 'string',
-								required: true
-							},
-							profesional: {
-								type: 'string',
-								required: true
-							}
-						}
-					}
-				}
-			},
-			post: {
-			}
-		};
-
 		addSchemaProperties({
 			isDate: function (value, schema, options, ctx) {
 				if (!value) return;
@@ -190,6 +271,15 @@ class Endpoints {
 				if (!valid) {
 					return "is " + (schema.isNumber === true ? "not " : "") + "a valid number";
 				}
+			},
+			isTime: function (value, schema, options, ctx) {
+				if (!value) return;
+
+				var valid = (moment(value, "HH:mm:ss").isValid() ? true : moment(value, "HH:mm").isValid() ? true : moment(value, "HH").isValid() ? true : false) === schema.isTime;
+
+				if (!valid) {
+					return "is " + (schema.isTime === true ? "not " : "") + "a valid time";
+				}
 			}
 		});
 
@@ -197,11 +287,13 @@ class Endpoints {
 		app.post('/api/login', this.login.bind(this));
 
 		//Verificacion de token o username+password
-		app.get('/api/:code/profesionales', authenticate, validate(this.schemas.get['/api/:code/profesionales']), this.getProfesionales.bind(this));
+		app.get('/api/:code/profesionales', authenticate, validate, queryBuilder, this.getProfesionales.bind(this));
 
-		app.get('/api/:code/especialidades', authenticate, validate(this.schemas.get['/api/:code/especialidades']), this.getEspecialidades.bind(this));
+		app.get('/api/:code/especialidades', authenticate, validate, queryBuilder, this.getEspecialidades.bind(this));
 
-		app.get('/api/:code/turnos', authenticate, validate(this.schemas.get['/api/:code/turnos']), this.getTurnos.bind(this));
+		app.get('/api/:code/turnos', authenticate, validate, queryBuilder, this.getTurnos.bind(this));
+
+		app.post('/api/:code/turno', authenticate, validate, this.newTurno.bind(this));
 
 		app.use(this.jsonSchemaValidation);
 
@@ -323,24 +415,11 @@ class Endpoints {
 	getProfesionales(req, res) {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
-		var where = {};
 
 		var Profesionales = SQLAnywhere.table('Profesionales');
 
-		for (let param in req.query) {
-			if (Profesionales.schema[param]) {
-				let value = req.query[param];
-
-				if (Profesionales.schema[param].type.toLowerCase() === 'date') {
-					value = moment(value).format("YYYY-MM-DD");
-				}
-
-				where[param] = value;
-			}
-		}
-
 		var query = Profesionales.find({
-			where: where
+			where: req.queryWhere
 		});
 
 		this.dbQuery(username, code, query).then((data) => {
@@ -366,24 +445,11 @@ class Endpoints {
 	getEspecialidades(req, res) {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
-		var where = {};
 
 		var Especialidades = SQLAnywhere.table('Especialidades');
 
-		for (let param in req.query) {
-			if (Especialidades.schema[param]) {
-				let value = req.query[param];
-
-				if (Especialidades.schema[param].type.toLowerCase() === 'date') {
-					value = moment(value).format("YYYY-MM-DD");
-				}
-
-				where[param] = value;
-			}
-		}
-
 		var query = Especialidades.find({
-			where: where
+			where: req.queryWhere
 		});
 
 		this.dbQuery(username, code, query).then((data) => {
@@ -409,7 +475,6 @@ class Endpoints {
 	getTurnos(req, res) {
 		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
-		var where = {};
 
 		var Turnos = SQLAnywhere.table('Turnos');
 		var Especialidades = SQLAnywhere.table('Especialidades');
@@ -418,20 +483,8 @@ class Endpoints {
 		Profesionales.join(Especialidades, Especialidades.schema.especialidad_id);
 		Turnos.join(Profesionales, Profesionales.schema.profesional_id);
 
-		for (let param in req.query) {
-			if (Turnos.schema[param]) {
-				let value = req.query[param];
-
-				if (Turnos.schema[param].type.toLowerCase() === 'date') {
-					value = moment(value).format("YYYY-MM-DD");
-				}
-
-				where[param] = value;
-			}
-		}
-
 		var query = Turnos.find({
-			where: where,
+			where: req.queryWhere,
 			order: {
 				turno_fecha: -1
 			}
@@ -455,6 +508,18 @@ class Endpoints {
 				err: err.message
 			});
 		});
+	}
+
+	newTurno(req, res) {
+		var username = req.decoded ? req.decoded._doc.username : "";
+		var code = req.params.code;
+
+		var turno_hora = moment(req.body.turno_hora, "HH:mm:ss").isValid() ? moment(req.body.turno_hora, "HH:mm:ss") : moment(req.body.turno_hora, "HH:mm").isValid() ? moment(req.body.turno_hora, "HH:mm") : moment(req.body.turno_hora, "HH");
+		req.body.turno_hora = turno_hora.format("HH:mm:ss");
+
+		var Turnos = SQLAnywhere.table('Turnos');
+
+		res.json(req.body);
 	}
 
 	dbQuery(username, code, query) {
