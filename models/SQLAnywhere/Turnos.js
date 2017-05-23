@@ -5,11 +5,13 @@ var schema = {
     },
     paciente_id: {
         type: "Number",
-        label: "ID Paciente"
+        label: "ID Paciente",
+        required: true
     },
     profesional_id: {
         type: "Number",
-        label: "ID Profesional"
+        label: "ID Profesional",
+        required: true
     },
     efector_id: {
         type: "Number",
@@ -21,7 +23,8 @@ var schema = {
     },
     servicio_id: {
         type: "Number",
-        label: "ID Servicio"
+        label: "ID Servicio",
+        required: true
     },
     obra_social_id: {
         type: "Number",
@@ -33,7 +36,8 @@ var schema = {
     },
     estado_turno_id: {
         type: "Number",
-        label: "ID Estado"
+        label: "ID Estado",
+        required: true
     },
     derivador_id: {
         type: "Number",
@@ -41,23 +45,34 @@ var schema = {
     },
     tipo_turno_fac_id: {
         type: "Number",
-        label: "ID Tipo de Turno"
+        label: "ID Tipo de Turno",
+        required: true
     },
     tot_id: {
         type: "Number",
-        label: "ID Origen"
+        label: "ID Origen",
+        required: true
+    },
+    turno_tipo_turno: {
+        type: "Number",
+        label: "ID Tipo Consulta",
+        required: true
     },
     turno_fecha: {
         type: "Date",
-        label: "Fecha"
+        label: "Fecha",
+        required: true
     },
     turno_hora: {
         type: "Time",
-        label: "Hora"
+        label: "Hora",
+        required: true
     },
     turno_sobreturno: {
         type: "String",
-        label: "Sobreturno"
+        label: "Sobreturno",
+        default: "N",
+        enum: ["S", "N"]
     },
     turno_hora_actual: {
         type: "Time",
@@ -65,23 +80,31 @@ var schema = {
     },
     turno_primera_vez: {
         type: "Number",
-        label: "Primera Vez"
+        label: "Primera Vez",
+        default: 0,
+        enum: [0, 1]
     },
     turno_duracion: {
         type: "Number",
-        label: "Duración"
+        label: "Duración",
+        required: true
     },
     turno_factor_duracion: {
         type: "Number",
-        label: "Factor de Duración"
+        label: "Factor de Duración",
+        default: 1
     },
     turno_asistencia: {
         type: "String",
-        label: "Asistencia"
+        label: "Asistencia",
+        default: "N",
+        enum: ["S", "N"]
     },
     turno_pasado: {
         type: "String",
-        label: "Turno Pasado"
+        label: "Turno Pasado",
+        default: "N",
+        enum: ["S", "N"]
     }
 };
 
