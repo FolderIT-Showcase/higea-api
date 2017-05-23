@@ -121,6 +121,7 @@ class Table {
 
         if (!_.isEmpty(options.order)) {
             order = " ORDER BY ";
+            let conditions = "";
             let i = 0;
             for (let column in options.order) {
                 let table = this.name;
@@ -132,7 +133,18 @@ class Table {
                 if (typeof (options.order[column]) === 'object') {
                     let obj = options.order[column];
                     if (obj.table) {
+                        if (!obj.table.schema[column]) {
+                            continue;
+                        }
                         table = obj.table.name;
+                    } else {
+                        if (!this.schema[column]) {
+                            continue;
+                        }
+                    }
+                } else {
+                    if (!this.schema[column]) {
+                        continue;
                     }
                 }
 
@@ -145,8 +157,14 @@ class Table {
                     asc = "";
                 }
 
-                order += table + "." + column + asc;
+                conditions += table + "." + column + asc;
                 i++;
+            }
+
+            if (conditions) {
+                order += conditions;
+            } else {
+                order = "";
             }
         }
 
