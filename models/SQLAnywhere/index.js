@@ -37,9 +37,7 @@ class Table {
         }));
     }
 
-    find(options) {
-        options = options || {};
-
+    find(options = {}) {
         var limit = "TOP 100";
         var columns = _.map(this.schema, e => e.schema).join(", ");
         var where = "";
@@ -175,13 +173,20 @@ class Table {
         query += " " + where + " \n\n";
         query += " " + order + " ";
 
-        return query;
+        return new Promise((resolve, reject) => {
+            resolve(query);
+        });
     }
 
-    join(table, column, type = "OUTER") {
-        let leftCol = this.name + "." + column.name;
-        let rightCol = column.schema;
-        this.joins += " LEFT " + type + " JOIN " + table.name + " ON " + leftCol + " = " + rightCol + " " + table.joins;
+    findOne(options = {}) {
+        options.limit = 1;
+
+        return find(options);
+    }
+
+    join(table, leftCol, rightCol = undefined, type = "OUTER") {
+        rightCol = rightCol || { schema: this.name + "." + leftCol.name };
+        this.joins += " LEFT " + type + " JOIN " + table.name + " ON " + leftCol.schema + " = " + rightCol.schema + " " + table.joins;
 
         // Anexar esquemas
         this.schema = _.merge(this.schema, table.schema);
