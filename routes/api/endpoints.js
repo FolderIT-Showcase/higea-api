@@ -27,6 +27,10 @@ var schemas = {
 						required: true
 					}
 				}
+			},
+			query: {
+				type: 'object',
+				properties: SQLAnywhere.validate('Profesionales', true)
 			}
 		},
 		"/api/:code/especialidades": {
@@ -38,6 +42,10 @@ var schemas = {
 						required: true
 					}
 				}
+			},
+			query: {
+				type: 'object',
+				properties: SQLAnywhere.validate('Especialidades', true)
 			}
 		},
 		"/api/:code/turnos": {
@@ -52,35 +60,7 @@ var schemas = {
 			},
 			query: {
 				type: 'object',
-				properties: {
-					turno_fecha: {
-						type: 'string',
-						isDate: true
-					},
-					especialidad_id: {
-						type: 'string',
-						isNumber: true
-					},
-					profesional_id: {
-						type: 'string',
-						isNumber: true
-					}
-				}
-			}
-		},
-		"/api/:code/turnos/:profesional": {
-			params: {
-				type: 'object',
-				properties: {
-					code: {
-						type: 'string',
-						required: true
-					},
-					profesional: {
-						type: 'string',
-						required: true
-					}
-				}
+				properties: SQLAnywhere.validate('Turnos', true)
 			}
 		}
 	},
@@ -237,20 +217,6 @@ var validate = function (req, res, next) {
 
 	if (schemas[method] && schemas[method][path]) {
 		schema = schemas[method][path];
-
-		// Añadir las propiedades por default en el body
-		Object.keys(schema).forEach((s) => {
-			var properties = schema[s].properties;
-			if (!properties) {
-				return;
-			}
-			Object.keys(properties).forEach((p) => {
-				var prop = properties[p];
-				if (prop.default !== undefined) {
-					req[s][p] = prop.default;
-				}
-			});
-		});
 	}
 
 	return require('express-jsonschema').validate(schema)(req, res, next);
@@ -262,33 +228,78 @@ var queryBuilder = function (req, res, next) {
 	let where = {};
 
 	if (schemas[method] && schemas[method][path]) {
-		let schema = schemas[method][path].query || {};
+		let schema = schemas[method][path];
 
-		if (schema && schema.properties) {
-			schema = schema.properties;
-		}
+		// Añadir las propiedades por default en el body
+		Object.keys(schema).forEach((s) => {
+			var properties = schema[s].properties;
 
-		for (let q in req.query) {
-			let value = req.query[q];
-
-			if (schema[q]) {
-				let type = schema[q].type ? schema[q].type.toLowerCase() : "string";
-
-				if (type === 'date' || (type === 'string' && schema[q].isDate === true)) {
-					value = moment(value).format("YYYY-MM-DD");
-				}
-
-				if (type === 'time' || (type === 'string' && schema[q].isTime === true)) {
-					let time = moment(value, "HH:mm:ss").isValid() ? moment(value, "HH:mm:ss") : moment(value, "HH:mm").isValid() ? moment(value, "HH:mm") : moment(value, "HH");
-					value = time.format("HH:mm:ss");
-				}
-
-				if (type === 'number' || (type === 'string' && schema[q].isNumber === true)) {
-					value = Number(value);
-				}
+			if (!properties) {
+				return;
 			}
 
-			where[q] = value;
+			Object.keys(properties).forEach((p) => {
+				var prop = properties[p];
+				if (prop.default !== undefined) {
+					req[s][p] = prop.default;
+				}
+			});
+		});
+
+		//Formateo de propiedades del body
+		if (schema.body && schema.body.properties) {
+			let body = schema.body.properties;
+
+			Object.keys(req.body).forEach((q) => {
+				let value = req.body[q];
+
+				if (body[q]) {
+					let type = body[q].type ? body[q].type.toLowerCase() : "string";
+
+					if (type === 'date' || (type === 'string' && body[q].isDate === true)) {
+						value = moment(value).format("YYYY-MM-DD");
+					}
+
+					if (type === 'time' || (type === 'string' && body[q].isTime === true)) {
+						let time = moment(value, "HH:mm:ss").isValid() ? moment(value, "HH:mm:ss") : moment(value, "HH:mm").isValid() ? moment(value, "HH:mm") : moment(value, "HH");
+						value = time.format("HH:mm:ss");
+					}
+
+					if (type === 'number' || (type === 'string' && body[q].isNumber === true)) {
+						value = Number(value);
+					}
+				}
+
+				req.body[q] = value;
+			});
+		}
+
+		//Construcción del where según parámetros del query
+		if (schema.query && schema.query.properties) {
+			let query = schema.query.properties;
+
+			Object.keys(req.query).forEach((q) => {
+				let value = req.query[q];
+
+				if (query[q]) {
+					let type = query[q].type ? query[q].type.toLowerCase() : "string";
+
+					if (type === 'date' || (type === 'string' && query[q].isDate === true)) {
+						value = moment(value).format("YYYY-MM-DD");
+					}
+
+					if (type === 'time' || (type === 'string' && query[q].isTime === true)) {
+						let time = moment(value, "HH:mm:ss").isValid() ? moment(value, "HH:mm:ss") : moment(value, "HH:mm").isValid() ? moment(value, "HH:mm") : moment(value, "HH");
+						value = time.format("HH:mm:ss");
+					}
+
+					if (type === 'number' || (type === 'string' && query[q].isNumber === true)) {
+						value = Number(value);
+					}
+				}
+
+				where[q] = value;
+			});
 		}
 	}
 
@@ -487,8 +498,8 @@ class Endpoints {
 		var Especialidades = SQLAnywhere.table('Especialidades');
 		var Profesionales = SQLAnywhere.table('Profesionales');
 
-		Profesionales.join(Especialidades, Especialidades.schema.especialidad_id);
-		Turnos.join(Profesionales, Profesionales.schema.profesional_id);
+		Turnos.join(Profesionales, Profesionales.profesional_id)
+			.join(Especialidades, Profesionales.profesional_id, Especialidades.especialidad_id);
 
 		var query = Turnos.find({
 			where: req.queryWhere,
@@ -525,7 +536,17 @@ class Endpoints {
 
 		var Turnos = SQLAnywhere.table('Turnos');
 
-		res.json(req.body);
+		Turnos.save(req.body).then((row) => {
+			res.json({
+				result: true,
+				data: row
+			});
+		}).catch((err) => {
+			res.json({
+				result: false,
+				err: err.message
+			});
+		});
 	}
 
 	dbQuery(code, query) {

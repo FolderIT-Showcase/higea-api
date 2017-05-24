@@ -198,6 +198,18 @@ class Table {
 
         // Reconstruir columnas
         this.rebuildColumns();
+
+        return this;
+    }
+
+    save(row) {
+        return new Promise((resolve, reject) => {
+            return resolve(row);
+
+            reject({
+                message: "Error"
+            });
+        });
     }
 }
 
@@ -205,7 +217,7 @@ module.exports = {
     table: function (tableName, mergeColumns = true) {
         return new Table(tableName, mergeColumns);
     },
-    validate: function (tableName) {
+    validate: function (tableName, noRequireds = false) {
         var objValidate = {};
         var schema = models[tableName];
 
@@ -242,7 +254,7 @@ module.exports = {
                 objValidate[e].default = column.default;
             }
 
-            if (column.required === true) {
+            if (column.required === true && noRequireds === false) {
                 objValidate[e].required = true;
             }
         });
