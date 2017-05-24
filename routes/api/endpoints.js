@@ -550,13 +550,52 @@ class Endpoints {
 
 	newTurno(req, res) {
 		var code = req.params.code;
+		var turno = req.body;
 
-		var turno_hora = moment(req.body.turno_hora, "HH:mm:ss").isValid() ? moment(req.body.turno_hora, "HH:mm:ss") : moment(req.body.turno_hora, "HH:mm").isValid() ? moment(req.body.turno_hora, "HH:mm") : moment(req.body.turno_hora, "HH");
-		req.body.turno_hora = turno_hora.format("HH:mm:ss");
+		var Turnos = SQLAnywhere.table(code, 'Turnos');
+		var Pacientes = SQLAnywhere.table(code, 'Pacientes');
+		var PlanesObraSocial = SQLAnywhere.table(code, 'PlanesObraSocial');
 
-		var Turnos = SQLAnywhere.table('Turnos');
+		// Obtener datos del paciente y completar datos del turno
+		Pacientes.findOne({
+			where: {
+				paciente_id: turno.paciente_id
+			}
+		}).then((paciente) => {
+			let plan_os_id, paciente_os_afiliado_nro;
 
-		Turnos.save(req.body).then((row) => {
+			if (paciente.plan_os_id_1) {
+				plan_os_id = paciente.plan_os_id_1;
+				paciente_os_afiliado_nro = paciente.paciente_os_afiliado1_nro;
+			} else if (paciente.plan_os_id_2) {
+				plan_os_id = paciente.plan_os_id_2;
+				paciente_os_afiliado_nro = paciente.paciente_os_afiliado2_nro;
+			} else if (paciente.plan_os_id_3) {
+				plan_os_id = paciente.plan_os_id_3;
+				paciente_os_afiliado_nro = paciente.paciente_os_afiliado3_nro;
+			} else {
+				return new Promise((resolve, reject) => {
+					reject({
+						message: "El paciente no tiene un Plan de Obra Social asignado"
+					});
+				});
+			}
+
+			turno.paciente_nro_doc = paciente.persona_documento_nro;
+			turno.paciente_nro_tel = paciente.persona_telefono_part_nro || paciente.persona_telefono_cel_nro || paciente.persona_telefono_lab_nro;
+			turno.plan_os_id = plan_os_id;
+			turno.paciente_nro_afil = paciente_os_afiliado_nro;
+
+			return PlanesObraSocial.findOne({
+				where: {
+					plan_os_id: plan_os_id
+				}
+			});
+		}).then((plan_os) => {
+			turno.obra_social_id = plan_os.obra_social_id;
+
+			return Turnos.save(turno);
+		}).then((row) => {
 			res.json({
 				result: true,
 				data: row
