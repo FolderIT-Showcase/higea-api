@@ -12,7 +12,7 @@ fs.readdirSync(__dirname).forEach(function (file) {
 });
 
 class Table {
-    constructor(tableName) {
+    constructor(tableName, mergeColumns = true) {
         this.schema = _.merge({}, models[tableName]);
         this.columns = [];
         this.name = "dba." + tableName.toLowerCase();
@@ -22,6 +22,11 @@ class Table {
             this.schema[e].name = e;
             this.schema[e].schema = this.name + "." + e;
             this.schema[e].table = this.name;
+
+            // Anexar columnas al constructor de la tabla
+            if (mergeColumns) {
+                this[e] = this.schema[e];
+            }
         });
 
         this.rebuildColumns();
@@ -197,8 +202,8 @@ class Table {
 }
 
 module.exports = {
-    table: function (tableName) {
-        return new Table(tableName);
+    table: function (tableName, mergeColumns = true) {
+        return new Table(tableName, mergeColumns);
     },
     validate: function (tableName) {
         var objValidate = {};
@@ -221,9 +226,9 @@ module.exports = {
                     objValidate[e].type = "string";
                     break;
 
-                // case "number":
-                //     objValidate[e].isNumber = true;
-                //     break;
+                case "number":
+                    objValidate[e].isNumber = true;
+                    break;
 
                 default:
                     objValidate[e].type = type;
