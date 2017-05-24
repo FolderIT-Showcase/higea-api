@@ -1,33 +1,54 @@
-var fs = require('fs'),
-    _ = require('lodash');
+let fs = require('fs'),
+    _ = require('lodash'),
+    mongoose = require('mongoose'),
+    Sybase = require('sybase');
 
-var models = {};
+let models = {};
 
 fs.readdirSync(__dirname).forEach(function (file) {
     if (file !== 'index.js') {
-        var moduleName = file.split('.')[0];
-        var model = require('./' + moduleName);
+        let moduleName = file.split('.')[0];
+        let model = require('./' + moduleName);
         models[moduleName] = model;
     }
 });
 
 class Table {
-    constructor(tableName, mergeColumns = true) {
+    constructor(tableName, options = {}) {
+        if (!options.hasOwnProperty("mergeColumns")) {
+            options.mergeColumns = true;
+        }
+
+        if (!options.hasOwnProperty("code")) {
+            options.code = "";
+        }
+
         this.schema = _.merge({}, models[tableName]);
         this.columns = [];
-        this.name = "dba." + tableName.toLowerCase();
+        this.name = "dba." + _.snakeCase(tableName);
         this.joins = "";
+        this.code = options.code;
+
+        let id = {};
 
         Object.keys(this.schema).forEach(e => {
             this.schema[e].name = e;
             this.schema[e].schema = this.name + "." + e;
             this.schema[e].table = this.name;
 
+            if (this.schema[e].identity === true) {
+                id = this.schema[e];
+            }
+
             // Anexar columnas al constructor de la tabla
-            if (mergeColumns) {
+            if (options.mergeColumns === true) {
                 this[e] = this.schema[e];
             }
         });
+
+        if (options.mergeColumns === true) {
+            this.id = id;
+        }
 
         this.rebuildColumns();
     }
@@ -43,11 +64,11 @@ class Table {
     }
 
     find(options = {}) {
-        var limit = "TOP 100";
-        var columns = _.map(this.schema, e => e.schema).join(", ");
-        var where = "";
-        var order = " ORDER BY 1 ";
-        var from = " FROM " + this.name + this.joins;
+        let limit = "TOP 100";
+        let columns = _.map(this.schema, e => e.schema).join(", ");
+        let where = "";
+        let order = " ORDER BY 1 ";
+        let from = " FROM " + this.name + this.joins;
 
         if (options.limit) {
             limit = "TOP " + options.limit;
@@ -171,7 +192,7 @@ class Table {
             }
         }
 
-        var query = " SELECT ";
+        let query = " SELECT ";
         query += " " + limit + " ";
         query += " " + columns + " \n\n";
         query += " " + from + " \n\n";
@@ -179,14 +200,32 @@ class Table {
         query += " " + order + " ";
 
         return new Promise((resolve, reject) => {
-            resolve(query);
+            this.connectDatabase().then(() => {
+                return this.queryDatabase(query);
+            }).then((rows) => {
+                this.disconnectDatabase();
+
+                resolve(rows);
+            }).catch((err) => {
+                this.disconnectDatabase();
+
+                reject(err);
+            });
         });
     }
 
     findOne(options = {}) {
         options.limit = 1;
 
-        return find(options);
+        return new Promise((resolve, reject) => {
+            this.find(options).then((row) => {
+                if (row && row.length) {
+                    resolve(row[0]);
+                } else {
+                    resolve();
+                }
+            }).catch(reject);
+        })
     }
 
     join(table, leftCol, rightCol = undefined, type = "OUTER") {
@@ -206,24 +245,112 @@ class Table {
         return new Promise((resolve, reject) => {
             return resolve(row);
 
-            reject({
-                message: "Error"
+    queryDatabase(query) {
+        return new Promise((resolve, reject) => {
+            this.db.query(query, (err, data) => {
+                if (err) {
+                    return reject(err);
+                }
+
+                resolve(data);
             });
+        });
+    }
+
+    connectDatabase() {
+        return new Promise((resolve, reject) => {
+            this.getDatabase().then(() => {
+                this.db.connect((err) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    resolve();
+                });
+            }).catch(reject);
+        });
+    }
+
+    disconnectDatabase() {
+        return new Promise((resolve, reject) => {
+            this.getDatabase().then(() => {
+                this.db.disconnect((err) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    resolve();
+                });
+            }).catch(reject);
+        });
+    }
+
+    getDatabase() {
+        return new Promise((resolve, reject) => {
+            if (this.db) {
+                return resolve();
+            }
+
+            this.validateClient(this.code).then((client) => {
+                if (!client) {
+                    return reject({
+                        message: "El cliente no existe"
+                    });
+                }
+
+                if (!client.dbHost || !client.dbPort || !client.dbServername || !client.dbUsername || !client.dbPassword) {
+                    return reject({
+                        message: "El cliente no tiene los datos de acceso a la DB configurados correctamente"
+                    });
+                }
+
+                this.db = new Sybase(client.dbHost, client.dbPort, client.dbServername, client.dbUsername, client.dbPassword);
+                resolve();
+            }).catch(reject);
+        });
+    }
+
+    validateClient(code) {
+        return new Promise((resolve, reject) => {
+            if (this.client) {
+                return resolve(this.client);
+            } else {
+                var Clients = mongoose.model('Clients');
+
+                Clients.findOne({
+                    code: code
+                }).then((client) => {
+                    if (!client) {
+            reject({
+                            message: "El cliente no existe o no está habilitado."
+                        });
+                    } else {
+                        this.client = client;
+                        resolve(client);
+                    }
+                }).catch((err) => {
+                    reject(err);
+            });
+            }
         });
     }
 }
 
 module.exports = {
-    table: function (tableName, mergeColumns = true) {
-        return new Table(tableName, mergeColumns);
+    table: function (code, tableName) {
+        let options = {
+            code: code
+        };
+
+        return new Table(tableName, options);
     },
     validate: function (tableName, noRequireds = false) {
-        var objValidate = {};
-        var schema = models[tableName];
+        let objValidate = {};
+        let schema = models[tableName];
 
         Object.keys(schema).forEach(e => {
-            var column = schema[e];
-            var type = column.type ? column.type.toLowerCase() : "string";
+            let column = schema[e];
+            let type = column.type ? column.type.toLowerCase() : "string";
 
             objValidate[e] = {};
 
