@@ -5,12 +5,10 @@ var _ = require('lodash'),
 	md5 = require('md5'),
 	jwt = require('jsonwebtoken'),
 	moment = require('moment'),
-	_ = require('lodash'),
 	fs = require('fs'),
 	path = require('path'),
 	config = require('../../config'),
 	request = require('request'),
-	Sybase = require('sybase'),
 	SQLAnywhere = require('../../models/SQLAnywhere'),
 	auth = require('basic-auth'),
 	addSchemaProperties = require('express-jsonschema').addSchemaProperties,
@@ -406,26 +404,6 @@ class Endpoints {
 	 * Endpoints funcionales
 	 */
 
-	validate_client(code) {
-		return new Promise((resolve, reject) => {
-			var Clients = mongoose.model('Clients');
-
-			Clients.findOne({
-				code: code
-			}).then((client) => {
-				if (!client) {
-					reject({
-						message: "El cliente no existe o no está habilitado."
-					});
-				} else {
-					resolve(client);
-				}
-			}).catch((err) => {
-				reject(err);
-			});
-		});
-	}
-
 	jsonSchemaValidation(err, req, res, next) {
 		var responseData;
 
@@ -453,81 +431,50 @@ class Endpoints {
 	 * Endpoints de autenticación
 	 */
 
-	getProfesionales(req, res) {
-		var code = req.params.code;
+	getTable(tableName) {
+		return function (req, res) {
+			var code = req.params.code;
 
-		var Profesionales = SQLAnywhere.table('Profesionales');
+			var Table = SQLAnywhere.table(code, tableName);
 
-		var query = Profesionales.find({
-			where: req.queryWhere
-		});
-
-		this.dbQuery(code, query).then((data) => {
-			res.json({
-				result: true,
-				data: {
-					columns: Profesionales.columns,
-					rows: data
+			Table.find({
+				where: req.queryWhere
+			}).then((rows) => {
+				res.json({
+					result: true,
+					data: {
+						columns: Table.columns,
+						rows: rows
+					}
+				});
+			}).catch((err) => {
+				if (err.status) {
+					res.status(err.status);
 				}
+
+				res.json({
+					result: false,
+					err: err.message
+				});
 			});
-		}).catch((err) => {
-			if (err.status) {
-				res.status(err.status);
-			}
-
-			res.json({
-				result: false,
-				err: err.message
-			});
-		});
-	}
-
-	getEspecialidades(req, res) {
-		var code = req.params.code;
-
-		var Especialidades = SQLAnywhere.table('Especialidades');
-
-		var query = Especialidades.find({
-			where: req.queryWhere
-		});
-
-		this.dbQuery(code, query).then((data) => {
-			res.json({
-				result: true,
-				data: {
-					columns: Especialidades.columns,
-					rows: data
-				}
-			});
-		}).catch((err) => {
-			if (err.status) {
-				res.status(err.status);
-			}
-
-			res.json({
-				result: false,
-				err: err.message
-			});
-		});
+		}
 	}
 
 	getTurnos(req, res) {
 		var code = req.params.code;
 
-		var Turnos = SQLAnywhere.table('Turnos');
-		var Especialidades = SQLAnywhere.table('Especialidades');
-		var Profesionales = SQLAnywhere.table('Profesionales');
+		var Turnos = SQLAnywhere.table(code, 'Turnos');
+		var Especialidades = SQLAnywhere.table(code, 'Especialidades');
+		var Profesionales = SQLAnywhere.table(code, 'Profesionales');
 
 		Turnos.join(Profesionales, Profesionales.profesional_id)
 			.join(Especialidades, Profesionales.profesional_id, Especialidades.especialidad_id);
 
-		var query = Turnos.find({
+		Turnos.find({
 			where: req.queryWhere,
 			order: {
 				turno_fecha: -1
 			}
-		}).then((query) => {
-			return this.dbQuery(code, query);
 		}).then((rows) => {
 			res.json({
 				result: true,
@@ -604,45 +551,6 @@ class Endpoints {
 			res.json({
 				result: false,
 				err: err.message
-			});
-		});
-	}
-
-	dbQuery(code, query) {
-		return new Promise((resolve, reject) => {
-			this.validate_client(code).then((client) => {
-				if (!client) {
-					return reject({
-						message: "El cliente no existe"
-					});
-				}
-
-				if (!client.dbHost || !client.dbPort || !client.dbServername || !client.dbUsername || !client.dbPassword) {
-					return reject({
-						message: "El cliente no tiene los datos de acceso a la DB configurados correctamente"
-					});
-				}
-
-				var db = new Sybase(client.dbHost, client.dbPort, client.dbServername, client.dbUsername, client.dbPassword);
-				db.connect((err) => {
-					if (err) {
-						logger.error(err);
-						return reject(err);
-					}
-
-					db.query(query, function (err, data) {
-						if (err) {
-							logger.error(err);
-							return reject(err);
-						}
-
-						db.disconnect();
-
-						resolve(data);
-					});
-				});
-			}).catch((err) => {
-				reject(err);
 			});
 		});
 	}
