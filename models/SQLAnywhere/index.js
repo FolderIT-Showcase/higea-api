@@ -243,7 +243,61 @@ class Table {
 
     save(row) {
         return new Promise((resolve, reject) => {
-            return resolve(row);
+            let columns, values = [];
+
+            Object.keys(row).join(", ");
+
+            columns = Object.keys(row).join(", ");
+            Object.keys(row).forEach((c) => {
+                let v = row[c];
+                if (this.schema[c] && this.schema[c].type && this.schema[c].type.toLowerCase() !== 'number') {
+                    v = "'" + v + "'";
+                }
+                values.push(v);
+            });
+            values = values.join(", ");
+
+            let query = " INSERT INTO ";
+            query += " " + this.name + " ";
+            query += " ( " + columns + " ) ";
+            query += " VALUES ( " + values + " ) ";
+
+            this.connectDatabase().then(() => {
+                return this.queryDatabase(query);
+            }).then((rows) => {
+                // Si es un INSERT, buscar la fila recien insertada
+                if (query.trim().split(" ")[0] === "INSERT") {
+                    this.queryDatabase("SELECT @@IDENTITY").then((id) => {
+                        if (id && id.length) {
+                            let columns = _.map(this.schema, e => e.schema).join(", ");
+
+                            id = id[0]["@@IDENTITY"];
+
+                            this.db.query("SELECT " + columns + " FROM " + this.name + " WHERE " + this.id.name + " = " + id, (err, row) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(row);
+                                }
+
+                                this.disconnectDatabase();
+                            });
+                        } else {
+                            resolve([]);
+                            this.disconnectDatabase();
+                        }
+                    }).catch(reject);
+                } else {
+                    resolve(rows);
+                    this.disconnectDatabase();
+                }
+            }).catch((err) => {
+                this.disconnectDatabase();
+
+                reject(err);
+            });
+        });
+    }
 
     queryDatabase(query) {
         return new Promise((resolve, reject) => {
@@ -321,7 +375,7 @@ class Table {
                     code: code
                 }).then((client) => {
                     if (!client) {
-            reject({
+                        reject({
                             message: "El cliente no existe o no está habilitado."
                         });
                     } else {
@@ -330,7 +384,7 @@ class Table {
                     }
                 }).catch((err) => {
                     reject(err);
-            });
+                });
             }
         });
     }
