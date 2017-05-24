@@ -1,7 +1,8 @@
 var schema = {
     turnos_id: {
         type: "Number",
-        label: "ID Turno"
+        label: "ID Turno",
+        identity: true
     },
     paciente_id: {
         type: "Number",
@@ -105,6 +106,18 @@ var schema = {
         label: "Turno Pasado",
         default: "N",
         enum: ["S", "N"]
+    },
+    paciente_nro_doc: {
+        type: "String",
+        label: "Nro. de Documento del Paciente"
+    },
+    paciente_nro_tel: {
+        type: "String",
+        label: "Nro. de Teléfono del Paciente"
+    },
+    paciente_nro_afil: {
+        type: "String",
+        label: "Nro. de Afiliado del Paciente"
     }
 };
 

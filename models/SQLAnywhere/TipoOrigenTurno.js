@@ -1,20 +1,22 @@
 var schema = {
-    especialidad_id: {
+    tot_id: {
         type: "Number",
-        label: "ID Especialidad",
+        label: "ID Tipo de Origen de Turno",
         identity: true
     },
-    especialidad_nombre: {
+    tot_nombre: {
         type: "String",
         label: "Nombre"
     },
-    especialidad_abreviatura: {
+    tot_abrev: {
         type: "String",
         label: "Abreviatura"
     },
-    especialidad_observaciones: {
+    tot_internacion: {
         type: "String",
-        label: "Observaciones"
+        label: "Internación",
+        default: "N",
+        enum: ["S", "N"]
     }
 };
 

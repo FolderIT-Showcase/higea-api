@@ -1,7 +1,8 @@
 var schema = {
     profesional_id: {
         type: "Number",
-        label: "ID Profesional"
+        label: "ID Profesional",
+        identity: true
     },
     persona_apellido: {
         type: "String",

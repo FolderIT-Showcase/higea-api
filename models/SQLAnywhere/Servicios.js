@@ -1,20 +1,20 @@
 var schema = {
-    especialidad_id: {
+    servicio_id: {
         type: "Number",
-        label: "ID Especialidad",
+        label: "ID Servicio",
         identity: true
     },
-    especialidad_nombre: {
+    servicio_nombre: {
         type: "String",
         label: "Nombre"
     },
-    especialidad_abreviatura: {
-        type: "String",
-        label: "Abreviatura"
-    },
-    especialidad_observaciones: {
+    servicio_observaciones: {
         type: "String",
         label: "Observaciones"
+    },
+    servicio_abreviatura: {
+        type: "String",
+        label: "Abreviatura"
     }
 };
 
