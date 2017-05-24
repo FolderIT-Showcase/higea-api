@@ -343,14 +343,31 @@ class Endpoints {
 		//Autenticacion
 		app.post('/api/login', this.login.bind(this));
 
+		//Aplicación de middlewares
+		app.use('/api/*', authenticate);
+
+		app.use('/api/:code/*', permission);
+
 		//Verificacion de token o username+password
-		app.get('/api/:code/profesionales', authenticate, permission, validate, queryBuilder, this.getProfesionales.bind(this));
+		app.get('/api/:code/profesionales', validate, queryBuilder, this.getTable("Profesionales").bind(this));
 
-		app.get('/api/:code/especialidades', authenticate, permission, validate, queryBuilder, this.getEspecialidades.bind(this));
+		app.get('/api/:code/especialidades', validate, queryBuilder, this.getTable("Especialidades").bind(this));
 
-		app.get('/api/:code/turnos', authenticate, validate, permission, queryBuilder, this.getTurnos.bind(this));
+		app.get('/api/:code/turnos', validate, queryBuilder, this.getTurnos.bind(this));
 
-		app.post('/api/:code/turno', authenticate, validate, permission, queryBuilder, this.newTurno.bind(this));
+		app.get('/api/:code/servicios', validate, queryBuilder, this.getTable("Servicios").bind(this));
+
+		app.get('/api/:code/planesObraSocial', validate, queryBuilder, this.getTable("PlanesObraSocial").bind(this));
+
+		app.get('/api/:code/pacientes', validate, queryBuilder, this.getTable("Pacientes").bind(this));
+
+		app.get('/api/:code/estadoTurnos', validate, queryBuilder, this.getTable("EstadoTurnos").bind(this));
+
+		app.get('/api/:code/tipoOrigenTurno', validate, queryBuilder, this.getTable("TipoOrigenTurno").bind(this));
+
+		app.get('/api/:code/tipoTurnoFac', validate, queryBuilder, this.getTable("TipoTurnoFac").bind(this));
+
+		app.post('/api/:code/turno', validate, queryBuilder, this.newTurno.bind(this));
 
 		app.use(this.jsonSchemaValidation);
 
