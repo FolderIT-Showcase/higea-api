@@ -56,7 +56,7 @@ app.controller('UserPermissionsController', ['$scope', '$filter', '$http', 'DTOp
             $scope.permit = angular.copy(newPermit);
             bsLoadingOverlayService.start({ referenceId: 'permissions' });
 
-            $http.post('/api/newPermit', $scope.permit)
+            $http.post('/api/admin/newPermit', $scope.permit)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'permissions' });
 
@@ -89,7 +89,7 @@ app.controller('UserPermissionsController', ['$scope', '$filter', '$http', 'DTOp
             $scope.permit = angular.copy(editedPermit);
             bsLoadingOverlayService.start({ referenceId: 'permissions' });
 
-            $http.post('/api/editPermit', $scope.permit)
+            $http.post('/api/admin/editPermit', $scope.permit)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'permissions' });
 
@@ -119,7 +119,7 @@ app.controller('UserPermissionsController', ['$scope', '$filter', '$http', 'DTOp
         modalInstance.result.then(function () {
             bsLoadingOverlayService.start({ referenceId: 'permissions' });
 
-            $http.post('/api/removePermit', permit)
+            $http.post('/api/admin/removePermit', permit)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'permissions' });
 
@@ -142,7 +142,7 @@ app.controller('UserPermissionsController', ['$scope', '$filter', '$http', 'DTOp
     $scope.getPermissions = function(user) {
         bsLoadingOverlayService.start({ referenceId: 'permissions' });
 
-        $http.get('/api/permissions/' + user.username)
+        $http.get('/api/admin/permissions/' + user.username)
             .then(function(res) {
             bsLoadingOverlayService.stop({ referenceId: 'permissions' });
 

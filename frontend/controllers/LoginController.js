@@ -26,7 +26,7 @@ app.controller('LoginController', ['$scope', '$rootScope', '$http', '$state', '$
     $scope.login = function() {
         bsLoadingOverlayService.start({ referenceId: 'login' });
 
-        $http.post('/api/login', $scope.formData)
+        $http.post('/api/admin/login', $scope.formData)
             .then(function(res) { 
             bsLoadingOverlayService.stop({ referenceId: 'login' });
 

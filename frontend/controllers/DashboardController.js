@@ -83,7 +83,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
     $scope.getClients = function(callback) {
         bsLoadingOverlayService.start({ referenceId: 'clients' });
 
-        $http.get('/api/getClients')
+        $http.get('/api/admin/getClients')
             .then(function(res) {
             bsLoadingOverlayService.stop({ referenceId: 'clients' });
 
@@ -104,7 +104,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
     $scope.getUsers = function(callback) {
         bsLoadingOverlayService.start({ referenceId: 'users' });
 
-        $http.get('/api/getUsers')
+        $http.get('/api/admin/getUsers')
             .then(function(res) {
             bsLoadingOverlayService.stop({ referenceId: 'users' });
 
@@ -144,7 +144,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
             $scope.user = angular.copy(newUser);
             bsLoadingOverlayService.start({ referenceId: 'users' });
 
-            $http.post('/api/newUser', $scope.user)
+            $http.post('/api/admin/newUser', $scope.user)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'users' });
 
@@ -177,7 +177,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
             $scope.client = angular.copy(newClient);
             bsLoadingOverlayService.start({ referenceId: 'clients' });
 
-            $http.post('/api/newClient', $scope.client)
+            $http.post('/api/admin/newClient', $scope.client)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'clients' });
 
@@ -202,7 +202,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         $scope.client.code += "-COPY";
         $scope.client._id = undefined;
 
-        $http.post('/api/newClient', $scope.client)
+        $http.post('/api/admin/newClient', $scope.client)
             .then(function(res) {
             bsLoadingOverlayService.stop({ referenceId: 'clients' });
 
@@ -222,7 +222,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         $scope.queryResults = {};
         bsLoadingOverlayService.start({ referenceId: 'queryResults' });
 
-        $http.get('/api/' + client.code + '/' + table).then(function(res) {
+        $http.get('/api/admin/' + client.code + '/' + table).then(function(res) {
             bsLoadingOverlayService.stop({ referenceId: 'queryResults' });
 
             if(res.data.result) {
@@ -280,7 +280,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         $scope.queryResults = {};
         bsLoadingOverlayService.start({ referenceId: 'queryResults' });
 
-        $http.get('/api/' + $scope.client.code + '/turnos?profesional_id=' + profesional).then(function(res) {
+        $http.get('/api/admin/' + $scope.client.code + '/turnos?profesional_id=' + profesional).then(function(res) {
             bsLoadingOverlayService.stop({ referenceId: 'queryResults' });
 
             if(res.data.result) {
@@ -333,7 +333,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
             $scope.user = angular.copy(editedUser);
             bsLoadingOverlayService.start({ referenceId: 'users' });
 
-            $http.post('/api/editUser', $scope.user)
+            $http.post('/api/admin/editUser', $scope.user)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'users' });
 
@@ -367,7 +367,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
             $scope.client = angular.copy(editedClient);
             bsLoadingOverlayService.start({ referenceId: 'clients' });
 
-            $http.post('/api/editClient', $scope.client)
+            $http.post('/api/admin/editClient', $scope.client)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'clients' });
 
@@ -401,7 +401,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
             $scope.user.password = editedUser.newPassword;
             bsLoadingOverlayService.start({ referenceId: 'users' });
 
-            $http.post('/api/resetPassword', $scope.user)
+            $http.post('/api/admin/resetPassword', $scope.user)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'users' });
 
@@ -449,7 +449,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         modalInstance.result.then(function () {
             bsLoadingOverlayService.start({ referenceId: 'clients' });
 
-            $http.post('/api/removeClient', client)
+            $http.post('/api/admin/removeClient', client)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'clients' });
 
@@ -479,7 +479,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         modalInstance.result.then(function () {
             bsLoadingOverlayService.start({ referenceId: 'users' });
 
-            $http.post('/api/removeUser', user)
+            $http.post('/api/admin/removeUser', user)
                 .then(function(res) {
                 bsLoadingOverlayService.stop({ referenceId: 'users' });
 

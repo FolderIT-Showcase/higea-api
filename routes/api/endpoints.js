@@ -354,32 +354,35 @@ class Endpoints {
 
 		app.use(this.jsonSchemaValidation);
 
-		//Verificación de permisos administrativos
-		app.get('/api/getClients', authenticate, administrative, this.getClients.bind(this));
+		//Aplicación de middlewares administrativos
+		app.use('/api/admin/*', administrative);
 
-		app.get('/api/getUsers', authenticate, administrative, this.getUsers.bind(this));
+		//Endpoints administrativos
+		app.get('/api/admin/getClients', this.getClients.bind(this));
 
-		app.get('/api/permissions/:username', authenticate, administrative, this.getUserPermissions.bind(this));
+		app.get('/api/admin/getUsers', this.getUsers.bind(this));
 
-		app.post('/api/newUser', authenticate, administrative, this.newUser.bind(this));
+		app.get('/api/admin/permissions/:username', this.getUserPermissions.bind(this));
 
-		app.post('/api/newPermit', authenticate, administrative, this.newPermit.bind(this));
+		app.post('/api/admin/newUser', this.newUser.bind(this));
 
-		app.post('/api/newClient', authenticate, administrative, this.newClient.bind(this));
+		app.post('/api/admin/newPermit', this.newPermit.bind(this));
 
-		app.post('/api/editClient', authenticate, administrative, this.editClient.bind(this));
+		app.post('/api/admin/newClient', this.newClient.bind(this));
 
-		app.post('/api/editUser', authenticate, administrative, this.editUser.bind(this));
+		app.post('/api/admin/editClient', this.editClient.bind(this));
 
-		app.post('/api/editPermit', authenticate, administrative, this.editPermit.bind(this));
+		app.post('/api/admin/editUser', this.editUser.bind(this));
 
-		app.post('/api/resetPassword', authenticate, administrative, this.resetPassword.bind(this));
+		app.post('/api/admin/editPermit', this.editPermit.bind(this));
 
-		app.post('/api/removeClient', authenticate, administrative, this.removeClient.bind(this));
+		app.post('/api/admin/resetPassword', this.resetPassword.bind(this));
 
-		app.post('/api/removePermit', authenticate, administrative, this.removePermit.bind(this));
+		app.post('/api/admin/removeClient', this.removeClient.bind(this));
 
-		app.post('/api/removeUser', authenticate, administrative, this.removeUser.bind(this));
+		app.post('/api/admin/removePermit', this.removePermit.bind(this));
+
+		app.post('/api/admin/removeUser', this.removeUser.bind(this));
 	}
 
 	/*
