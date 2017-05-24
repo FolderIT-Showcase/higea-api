@@ -225,7 +225,7 @@ class Table {
                     resolve();
                 }
             }).catch(reject);
-        })
+        });
     }
 
     join(table, leftCol, rightCol = undefined, type = "OUTER") {

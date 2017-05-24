@@ -31,14 +31,14 @@ gulp.task('frontend', function () {
         .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest('./public'));
 
-    gulp.src(['./frontend/api/**'], { read: false })
+    gulp.src(['./frontend/api/**'])
         .pipe(gulp.dest('./public/api'));
 
     gulp.src(['./frontend/**/*.html', '!./frontend/api/**', '!./frontend/src.html'])
         .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest('./public'));
 
-    gulp.src(['./frontend/assets/**', '!./frontend/assets/**/*.css', '!./frontend/assets/**/*.js'], { read: false })
+    gulp.src(['./frontend/assets/**', '!./frontend/assets/**/*.css', '!./frontend/assets/**/*.js'])
         .pipe(gulp.dest('./public/assets'));
 });
 

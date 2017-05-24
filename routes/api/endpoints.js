@@ -355,6 +355,8 @@ class Endpoints {
 
 		app.get('/api/:code/servicios', validate, queryBuilder, this.getTable("Servicios").bind(this));
 
+		app.get('/api/:code/obrasSociales', validate, queryBuilder, this.getTable("ObrasSociales").bind(this));
+
 		app.get('/api/:code/planesObraSocial', validate, queryBuilder, this.getTable("PlanesObraSocial").bind(this));
 
 		app.get('/api/:code/pacientes', validate, queryBuilder, this.getTable("Pacientes").bind(this));
