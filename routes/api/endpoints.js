@@ -103,6 +103,9 @@ var schemas = {
 	}
 };
 
+
+// Definición de middlewares
+
 var authenticate = function (req, res, next) {
 	var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers['authorization'];
 	var username = req.body.username || req.query.username || req.headers['username'];
@@ -179,6 +182,49 @@ var administrative = function (req, res, next) {
 	}, (err) => {
 		return res.status(500).json({
 			result: false,
+			err: err.message
+		});
+	});
+}
+
+var permission = function (req, res, next) {
+	var username = req.decoded ? req.decoded._doc.username : "";
+	var code = req.params.code;
+
+	var Users = mongoose.model('Users');
+	var UserPermissions = mongoose.model('UserPermissions');
+
+	UserPermissions.findOne({
+		username: username,
+		code: code,
+		active: true
+	}).then((permit) => {
+		if (permit) {
+			return next();
+		}
+
+		//Si el usuario no tiene permisos, verificar si es administrador
+		Users.findOne({
+			username: username,
+			admin: true
+		}).then((user) => {
+			if (!user) {
+				return res.status(403).json({
+					result: false,
+					message: "El usuario no tiene permisos para interactuar con el cliente solicitado."
+				})
+			}
+
+			next();
+		}, (err) => {
+			res.status(500).json({
+				status: false,
+				err: err.message
+			});
+		});
+	}).catch((err) => {
+		res.status(500).json({
+			status: false,
 			err: err.message
 		});
 	});
@@ -287,13 +333,13 @@ class Endpoints {
 		app.post('/api/login', this.login.bind(this));
 
 		//Verificacion de token o username+password
-		app.get('/api/:code/profesionales', authenticate, validate, queryBuilder, this.getProfesionales.bind(this));
+		app.get('/api/:code/profesionales', authenticate, permission, validate, queryBuilder, this.getProfesionales.bind(this));
 
-		app.get('/api/:code/especialidades', authenticate, validate, queryBuilder, this.getEspecialidades.bind(this));
+		app.get('/api/:code/especialidades', authenticate, permission, validate, queryBuilder, this.getEspecialidades.bind(this));
 
-		app.get('/api/:code/turnos', authenticate, validate, queryBuilder, this.getTurnos.bind(this));
+		app.get('/api/:code/turnos', authenticate, validate, permission, queryBuilder, this.getTurnos.bind(this));
 
-		app.post('/api/:code/turno', authenticate, validate, this.newTurno.bind(this));
+		app.post('/api/:code/turno', authenticate, validate, permission, queryBuilder, this.newTurno.bind(this));
 
 		app.use(this.jsonSchemaValidation);
 
@@ -349,42 +395,6 @@ class Endpoints {
 		});
 	}
 
-	validate_username(username, code) {
-		return new Promise((resolve, reject) => {
-			var Users = mongoose.model('Users');
-			var UserPermissions = mongoose.model('UserPermissions');
-
-			UserPermissions.findOne({
-				username: username,
-				code: code,
-				active: true
-			}).then((permit) => {
-				if (!permit) {
-					//Si el usuario no tiene permisos, verificar si es administrador
-					Users.findOne({
-						username: username,
-						admin: true
-					}).then((user) => {
-						if (!user) {
-							reject({
-								status: 403,
-								message: "El usuario no tiene permisos para interactuar con el cliente solicitado."
-							});
-						} else {
-							resolve(user);
-						}
-					}, (err) => {
-						reject(err);
-					});
-				} else {
-					resolve(permit);
-				}
-			}).catch((err) => {
-				reject(err);
-			});
-		});
-	}
-
 	jsonSchemaValidation(err, req, res, next) {
 		var responseData;
 
@@ -413,7 +423,6 @@ class Endpoints {
 	 */
 
 	getProfesionales(req, res) {
-		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
 
 		var Profesionales = SQLAnywhere.table('Profesionales');
@@ -422,7 +431,7 @@ class Endpoints {
 			where: req.queryWhere
 		});
 
-		this.dbQuery(username, code, query).then((data) => {
+		this.dbQuery(code, query).then((data) => {
 			res.json({
 				result: true,
 				data: {
@@ -443,7 +452,6 @@ class Endpoints {
 	}
 
 	getEspecialidades(req, res) {
-		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
 
 		var Especialidades = SQLAnywhere.table('Especialidades');
@@ -452,7 +460,7 @@ class Endpoints {
 			where: req.queryWhere
 		});
 
-		this.dbQuery(username, code, query).then((data) => {
+		this.dbQuery(code, query).then((data) => {
 			res.json({
 				result: true,
 				data: {
@@ -473,7 +481,6 @@ class Endpoints {
 	}
 
 	getTurnos(req, res) {
-		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
 
 		var Turnos = SQLAnywhere.table('Turnos');
@@ -488,14 +495,14 @@ class Endpoints {
 			order: {
 				turno_fecha: -1
 			}
-		});
-
-		this.dbQuery(username, code, query).then((data) => {
+		}).then((query) => {
+			return this.dbQuery(code, query);
+		}).then((rows) => {
 			res.json({
 				result: true,
 				data: {
 					columns: Turnos.columns,
-					rows: data
+					rows: rows
 				}
 			});
 		}).catch((err) => {
@@ -511,7 +518,6 @@ class Endpoints {
 	}
 
 	newTurno(req, res) {
-		var username = req.decoded ? req.decoded._doc.username : "";
 		var code = req.params.code;
 
 		var turno_hora = moment(req.body.turno_hora, "HH:mm:ss").isValid() ? moment(req.body.turno_hora, "HH:mm:ss") : moment(req.body.turno_hora, "HH:mm").isValid() ? moment(req.body.turno_hora, "HH:mm") : moment(req.body.turno_hora, "HH");
@@ -522,11 +528,9 @@ class Endpoints {
 		res.json(req.body);
 	}
 
-	dbQuery(username, code, query) {
+	dbQuery(code, query) {
 		return new Promise((resolve, reject) => {
-			this.validate_username(username, code).then((permit) => {
-				return this.validate_client(code);
-			}).then((client) => {
+			this.validate_client(code).then((client) => {
 				if (!client) {
 					return reject({
 						message: "El cliente no existe"
