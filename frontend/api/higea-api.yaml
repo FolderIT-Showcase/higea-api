@@ -76,16 +76,16 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
-  '/{cliente}/especialidades':
+  '/{cliente}/pacientes':
     get:
       tags:
-        - Especialidades
-      summary: Obtener todas las especialidades configuradas en el cliente
+        - Pacientes
+      summary: Obtener los pacientes del cliente
       description: >-
         Se debe especificar el código único del cliente del que se quieren
-        obtener las especialidades. En la query string se pueden agregar opcionalmente los
+        obtener los pacientes. En la query string se pueden agregar opcionalmente los
         nombres de las columnas disponibles con el valor a consultar.
-      operationId: getEspecialidades
+      operationId: getPacientes
       produces:
         - application/json
       parameters:
@@ -94,14 +94,14 @@ paths:
           description: Código único del cliente
           required: true
           type: string
-        - name: especialidad_id
+        - name: paciente_id
           in: query
-          description: ID de la especialidad a consultar.
+          description: ID del paciente a consultar.
           required: false
           type: string
       responses:
         '200':
-          $ref: '#/responses/Especialidades'
+          $ref: '#/responses/Pacientes'
         '400':
           $ref: '#/responses/BadRequest'
         '401':
@@ -145,10 +145,76 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
+    post:
+      tags:
+        - Turnos
+      summary: Ingreso de nuevos turnos
+      description: >-
+        Se debe especificar el código único del cliente al que se le cargará el
+        turno. Las columnas no requeridas se completarán automáticamente en base
+        a los datos ingresados (por ejemplo, el Nº de documento del paciente
+        se buscará del ID de paciente ingresado).
+      operationId: postTurnos
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - in: "body"
+          name: "body"
+          description: "Datos de usuario a autenticar"
+          required: true
+          schema:
+            $ref: "#/definitions/Turno"
+      responses:
+          '200':
+            $ref: '#/responses/Turnos'
+          '400':
+            $ref: '#/responses/BadRequest'
+          '500':
+            $ref: '#/responses/InternalError'
+  '/{cliente}/especialidades':
+    get:
+      tags:
+        - Turnos
+        - Profesionales
+      summary: Obtener todas las especialidades configuradas en el cliente
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener las especialidades. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
+      operationId: getEspecialidades
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - name: especialidad_id
+          in: query
+          description: ID de la especialidad a consultar.
+          required: false
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/Especialidades'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
   '/{cliente}/servicios':
     get:
       tags:
-        - Servicios
+        - Turnos
       summary: Obtener los servicios del cliente
       description: >-
         Se debe especificar el código único del cliente del que se quieren
@@ -182,13 +248,14 @@ paths:
   '/{cliente}/obrasSociales':
     get:
       tags:
-        - Obras Sociales
+        - Pacientes
+        - Turnos
       summary: Obtener las obras sociales del cliente
       description: >-
         Se debe especificar el código único del cliente del que se quieren
         obtener las obras sociales. En la query string se pueden agregar opcionalmente los
         nombres de las columnas disponibles con el valor a consultar.
-      operationId: getPlanesObraSocial
+      operationId: getObrasSociales
       produces:
         - application/json
       parameters:
@@ -216,7 +283,8 @@ paths:
   '/{cliente}/planesObraSocial':
     get:
       tags:
-        - Planes de Obra Social
+        - Pacientes
+        - Turnos
       summary: Obtener los planes de obra social del cliente
       description: >-
         Se debe especificar el código único del cliente del que se quieren
@@ -247,44 +315,10 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
-  '/{cliente}/pacientes':
-    get:
-      tags:
-        - Pacientes
-      summary: Obtener los pacientes del cliente
-      description: >-
-        Se debe especificar el código único del cliente del que se quieren
-        obtener los pacientes. En la query string se pueden agregar opcionalmente los
-        nombres de las columnas disponibles con el valor a consultar.
-      operationId: getPacientes
-      produces:
-        - application/json
-      parameters:
-        - name: cliente
-          in: path
-          description: Código único del cliente
-          required: true
-          type: string
-        - name: paciente_id
-          in: query
-          description: ID del paciente a consultar.
-          required: false
-          type: string
-      responses:
-        '200':
-          $ref: '#/responses/Pacientes'
-        '400':
-          $ref: '#/responses/BadRequest'
-        '401':
-          $ref: '#/responses/Unauthorized'
-        '403':
-          $ref: '#/responses/Forbidden'
-        '500':
-          $ref: '#/responses/InternalError'
   '/{cliente}/estadoTurnos':
     get:
       tags:
-        - Estados de Turnos
+        - Turnos
       summary: Obtener los estados de turnos del cliente
       description: >-
         Se debe especificar el código único del cliente del que se quieren
@@ -318,13 +352,13 @@ paths:
   '/{cliente}/tipoOrigenTurno':
     get:
       tags:
-        - Tipos de Origen de Turno
+        - Turnos
       summary: Obtener los tipos de origen de turno del cliente
       description: >-
         Se debe especificar el código único del cliente del que se quieren
         obtener los tipos de origen de turno. En la query string se pueden agregar opcionalmente los
         nombres de las columnas disponibles con el valor a consultar.
-      operationId: getPacientes
+      operationId: getTipoOrigenTurno
       produces:
         - application/json
       parameters:
@@ -352,13 +386,13 @@ paths:
   '/{cliente}/tipoTurnoFac':
     get:
       tags:
-        - Tipos de Turno
+        - Turnos
       summary: Obtener los tipos de turno del cliente
       description: >-
         Se debe especificar el código único del cliente del que se quieren
         obtener los tipos de turno. En la query string se pueden agregar opcionalmente los
         nombres de las columnas disponibles con el valor a consultar.
-      operationId: getPacientes
+      operationId: getTipoTurnoFac
       produces:
         - application/json
       parameters:
@@ -688,6 +722,10 @@ definitions:
         description: "Observaciones de la especialidad"
   Turno:
     type: object
+    required:
+      [ paciente_id, profesional_id, servicio_id, estado_turno_id,
+      tipo_turno_fac_id, tot_id, turno_tipo_turno, turno_fecha, turno_hora,
+      turno_duracion ]
     properties:
       turnos_id:
         type: number
@@ -738,7 +776,10 @@ definitions:
       turno_sobreturno:
         type: string
         description: "Indica si el turno es sobreturno ('S') o no ('N')"
-        default: "S"
+        default: "N"
+        enum:
+        - "S"
+        - "N"
       turno_hora_actual:
         type: string
         format: time
@@ -746,6 +787,10 @@ definitions:
       turno_primera_vez:
         type: number
         description: "Indica si el turno es Primera Vez (1) o no (0)"
+        default: 0
+        enum:
+        - 0
+        - 1
       turno_duracion:
         type: number
         description: "Duración del turno en minutos"
@@ -756,9 +801,15 @@ definitions:
       turno_asistencia:
         type: string
         default: "N"
+        enum:
+        - "S"
+        - "N"
       turno_pasado:
         type: string
         default: "N"
+        enum:
+        - "S"
+        - "N"
       paciente_nro_doc:
         type: string
         description: "Nro. de documento del paciente"

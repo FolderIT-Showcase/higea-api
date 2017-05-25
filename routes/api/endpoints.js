@@ -63,7 +63,7 @@ var schemas = {
 		}
 	},
 	post: {
-		"/api/:code/turno": {
+		"/api/:code/turnos": {
 			params: {
 				type: "object",
 				properties: {
@@ -367,7 +367,7 @@ class Endpoints {
 
 		app.get('/api/:code/tipoTurnoFac', validate, queryBuilder, this.getTable("TipoTurnoFac").bind(this));
 
-		app.post('/api/:code/turno', validate, queryBuilder, this.newTurno.bind(this));
+		app.post('/api/:code/turnos', validate, queryBuilder, this.newTurno.bind(this));
 
 		app.use(this.jsonSchemaValidation);
 
@@ -547,7 +547,10 @@ class Endpoints {
 		}).then((row) => {
 			res.json({
 				result: true,
-				data: row
+				data: {
+					columns: Turnos.columns,
+					rows: row
+				}
 			});
 		}).catch((err) => {
 			res.json({
