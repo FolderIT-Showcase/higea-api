@@ -148,12 +148,13 @@ paths:
     post:
       tags:
         - Turnos
-      summary: Ingreso de nuevos turnos
+      summary: Ingreso/modificación de turnos
       description: >-
         Se debe especificar el código único del cliente al que se le cargará el
         turno. Las columnas no requeridas se completarán automáticamente en base
         a los datos ingresados (por ejemplo, el Nº de documento del paciente
-        se buscará del ID de paciente ingresado).
+        se buscará del ID de paciente ingresado). ~~Si se completa el ID del turno,
+        se actualizará el registro (en caso que exista).~~
       operationId: postTurnos
       produces:
         - application/json

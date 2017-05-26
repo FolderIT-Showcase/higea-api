@@ -245,6 +245,11 @@ class Table {
         return new Promise((resolve, reject) => {
             let columns, values = [];
 
+            // Remover el ID de la fila (solo insertar nuevos registros)
+            if (row.hasOwnProperty(this.id.name)) {
+                row[this.id.name] = undefined;
+            }
+
             Object.keys(row).join(", ");
 
             columns = Object.keys(row).join(", ");
