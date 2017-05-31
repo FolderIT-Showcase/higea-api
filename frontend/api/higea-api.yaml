@@ -316,40 +316,6 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
-  '/{cliente}/estadoTurnos':
-    get:
-      tags:
-        - Turnos
-      summary: Obtener los estados de turnos del cliente
-      description: >-
-        Se debe especificar el código único del cliente del que se quieren
-        obtener los estados de turnos. En la query string se pueden agregar opcionalmente los
-        nombres de las columnas disponibles con el valor a consultar.
-      operationId: getEstadoTurnos
-      produces:
-        - application/json
-      parameters:
-        - name: cliente
-          in: path
-          description: Código único del cliente
-          required: true
-          type: string
-        - name: estado_turno_id
-          in: query
-          description: ID del estado de turno a consultar.
-          required: false
-          type: string
-      responses:
-        '200':
-          $ref: '#/responses/EstadoTurnos'
-        '400':
-          $ref: '#/responses/BadRequest'
-        '401':
-          $ref: '#/responses/Unauthorized'
-        '403':
-          $ref: '#/responses/Forbidden'
-        '500':
-          $ref: '#/responses/InternalError'
   '/{cliente}/tipoOrigenTurno':
     get:
       tags:
@@ -410,6 +376,210 @@ paths:
       responses:
         '200':
           $ref: '#/responses/TipoTurnoFac'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
+  '/{cliente}/estadoTurnos':
+    get:
+      tags:
+        - Turnos
+      summary: Obtener los estados de turnos del cliente
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener los estados de turnos. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
+      operationId: getEstadoTurnos
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - name: estado_turno_id
+          in: query
+          description: ID del estado de turno a consultar.
+          required: false
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/EstadoTurnos'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
+  '/{cliente}/estadoCiviles':
+    get:
+      tags:
+        - Pacientes
+      summary: Obtener los estados civiles del cliente
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener los estados civiles. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
+      operationId: getEstadoCiviles
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - name: estado_civil_id
+          in: query
+          description: ID del estado civil a consultar.
+          required: false
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/EstadoCiviles'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
+  '/{cliente}/tipoDocumentos':
+    get:
+      tags:
+        - Pacientes
+      summary: Obtener los tipos de documento del cliente
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener los tipos de documento. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
+      operationId: getTipoDocumentos
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - name: documento_id
+          in: query
+          description: ID del tipo de documento a consultar.
+          required: false
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/TipoDocumentos'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
+  '/{cliente}/paises':
+    get:
+      tags:
+        - Pacientes
+      summary: Obtener los países del cliente
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener los países. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
+      operationId: getPaises
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - name: pais_id
+          in: query
+          description: ID del país a consultar.
+          required: false
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/Paises'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
+  '/{cliente}/Provincias':
+    get:
+      tags:
+        - Pacientes
+      summary: Obtener las provincias del cliente
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener las provincias. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
+      operationId: getProvincias
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - name: provincia_id
+          in: query
+          description: ID de la provincia a consultar.
+          required: false
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/Provincias'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
+  '/{cliente}/Localidades':
+    get:
+      tags:
+        - Pacientes
+      summary: Obtener las localidades del cliente
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener las localidades. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
+      operationId: getLocalidades
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - name: localidad_id
+          in: query
+          description: ID de la localidad a consultar.
+          required: false
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/Localidades'
         '400':
           $ref: '#/responses/BadRequest'
         '401':
@@ -623,6 +793,101 @@ responses:
                   type: array
                   items:
                     $ref: '#/definitions/EstadoTurno'
+  EstadoCiviles:
+    description: Consulta exitosa
+    schema:
+      title: "Estados Civiles"
+      allOf:
+        - $ref: '#/definitions/Response'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                columns:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Column'
+                rows:
+                  type: array
+                  items:
+                    $ref: '#/definitions/EstadoCivil'
+  TipoDocumentos:
+    description: Consulta exitosa
+    schema:
+      title: "Tipos de Documentos"
+      allOf:
+        - $ref: '#/definitions/Response'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                columns:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Column'
+                rows:
+                  type: array
+                  items:
+                    $ref: '#/definitions/TipoDocumento'
+  Paises:
+    description: Consulta exitosa
+    schema:
+      title: "Países"
+      allOf:
+        - $ref: '#/definitions/Response'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                columns:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Column'
+                rows:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Pais'
+  Provincias:
+    description: Consulta exitosa
+    schema:
+      title: "Provincias"
+      allOf:
+        - $ref: '#/definitions/Response'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                columns:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Column'
+                rows:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Provincia'
+  Localidades:
+    description: Consulta exitosa
+    schema:
+      title: "Localidades"
+      allOf:
+        - $ref: '#/definitions/Response'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                columns:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Column'
+                rows:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Localidad'
   BadRequest:
     description: "Solicitud inválida"
     schema:
@@ -683,22 +948,31 @@ definitions:
         type: string
   Profesional:
     type: object
+    required:
+      [ localidad_id, especialidad_id, persona_apellido, persona_nombres, persona_documento_nro ]
     properties:
       profesional_id:
         type: number
         description: "ID único del profesional"
+      localidad_id:
+        type: number
+        description: "ID de la localidad del profesional"
+      especialidad_id:
+        type: number
+        description: "ID de la especialidad del profesional"
       persona_apellido:
         type: string
       persona_nombres:
         type: string
       persona_documento_nro:
         type: string
-      especialidad_id:
-        type: number
-        description: "ID de la especialidad del profesional"
       profesional_clinica:
         type: string
         description: "Indica si el profesional es interno de la clínica ('S') o no ('N')"
+        default: "S"
+        enum:
+        - "S"
+        - "N"
       persona_fecha_ingreso:
         type: string
         format: date
@@ -706,6 +980,17 @@ definitions:
       persona_observaciones:
         type: string
         description: "Observaciones del profesional"
+      persona_fecha_nacimiento:
+        type: string
+        format: date
+        description: "Fecha de nacimiento"
+      persona_sexo:
+        type: string
+        description: "Indica el género del profesional: 'N' Masculino, 'S' Femenino"
+        default: "N"
+        enum:
+        - "S"
+        - "N"
   Especialidad:
     type: object
     properties:
@@ -822,6 +1107,8 @@ definitions:
         description: "Nro. de afiliado del paciente"
   Paciente:
     type: object
+    required:
+      [ plan_os_id_1, localidad_id, documento_id, persona_apellido, persona_nombres, persona_documento_nro ]
     properties:
       paciente_id:
         type: number
@@ -835,6 +1122,38 @@ definitions:
       plan_os_id_3:
         type: number
         description: "ID del plan de obra social terciario"
+      pais_id:
+        type: number
+        description: "ID del país"
+      provincia_id:
+        type: number
+        description: "ID de la provincia"
+      localidad_id:
+        type: number
+        description: "ID de la localidad"
+      estado_civil_id:
+        type: number
+        description: "ID del estado civil"
+      documento_id:
+        type: number
+        description: "ID del tipo de documento"
+      persona_apellido:
+        type: string
+        description: "Apellido"
+      persona_nombres:
+        type: string
+        description: "Nombres"
+      persona_fecha_nacimiento:
+        type: string
+        format: date
+        description: "Fecha de nacimiento"
+      persona_sexo:
+        type: string
+        description: "Género del paciente. 'N' Masculino, 'S' Femenino"
+        default: "N"
+        enum:
+        - "S"
+        - "N"
       persona_documento_nro:
         type: string
         description: "Nro. de documento del paciente"
@@ -847,6 +1166,21 @@ definitions:
       persona_telefono_lab_nro:
         type: string
         description: "Nro. de teléfono laboral del paciente"
+      persona_calle_texto:
+        type: string
+        description: "Domicilio"
+      persona_calle_nro:
+        type: string
+        description: "Nro. de calle"
+      persona_departamento_nro:
+        type: string
+        description: "Nro. de departamento"
+      persona_piso_nro:
+        type: string
+        description: "Nro. de piso"
+      persona_email:
+        type: string
+        description: "Email"
       paciente_os_afiliado1_nro:
         type: string
         description: "Nro. de afiliado principal del paciente"
@@ -925,3 +1259,68 @@ definitions:
       estado_turno_nombre:
         type: string
         description: "Nombre del estado de turno"
+  EstadoCivil:
+    type: object
+    properties:
+      estado_civil_id:
+        type: number
+        description: "ID único del estado civil"
+      estado_civil_nombre:
+        type: string
+        description: "Nombre del estado civil"
+  TipoDocumento:
+    type: object
+    properties:
+      documento_id:
+        type: number
+        description: "ID único del tipo de documento"
+      documento_abreviatura:
+        type: string
+        description: "Abreviatura del tipo de documento"
+      documento_descripcion:
+        type: string
+      documento_formato:
+        type: string
+        description: "Formato estándar del tipo de documento, donde # representa un dígito"
+  Pais:
+    type: object
+    properties:
+      pais_id:
+        type: number
+        description: "ID único"
+      pais_nombre:
+        type: string
+        description: "Nombre"
+      pais_abreviatura:
+        type: string
+        description: "Abreviatura"
+  Provincia:
+    type: object
+    properties:
+      provincia_id:
+        type: number
+        description: "ID único"
+      pais_id:
+        type: number
+        description: "ID del país"
+      provincia_nombre:
+        type: string
+        description: "Nombre"
+      provincia_abreviatura:
+        type: string
+        description: "Abreviatura"
+  Localidad:
+    type: object
+    properties:
+      localidad_id:
+        type: number
+        description: "ID único"
+      provincia_id:
+        type: number
+        description: "ID de la provincia"
+      localidad_nombre:
+        type: string
+        description: "Nombre"
+      localidad_codigo_postal:
+        type: string
+        description: "Código postal de la localidad, idealmente en formato CPA"
