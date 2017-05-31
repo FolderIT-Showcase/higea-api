@@ -520,7 +520,7 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
-  '/{cliente}/Provincias':
+  '/{cliente}/provincias':
     get:
       tags:
         - Pacientes
@@ -554,7 +554,7 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
-  '/{cliente}/Localidades':
+  '/{cliente}/localidades':
     get:
       tags:
         - Pacientes
