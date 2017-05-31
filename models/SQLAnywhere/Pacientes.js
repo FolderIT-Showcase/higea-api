@@ -34,6 +34,11 @@ var schema = {
         type: "Number",
         label: "Estado Civil"
     },
+    documento_id: {
+        type: "String",
+        label: "Tipo de Documento",
+        required: true
+    },
     persona_apellido: {
         type: "String",
         label: "Apellido",
@@ -56,7 +61,8 @@ var schema = {
     },
     persona_documento_nro: {
         type: "String",
-        label: "Nro. de Documento"
+        label: "Nro. de Documento",
+        required: true
     },
     persona_telefono_part_nro: {
         type: "String",

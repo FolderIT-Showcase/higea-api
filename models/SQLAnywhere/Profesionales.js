@@ -4,6 +4,16 @@ var schema = {
         label: "ID Profesional",
         identity: true
     },
+    localidad_id: {
+        type: "Number",
+        label: "ID Localidad",
+        required: true
+    },
+    especialidad_id: {
+        type: "Number",
+        label: "ID Especialidad",
+        required: true
+    },
     persona_apellido: {
         type: "String",
         label: "Apellido",
@@ -17,11 +27,6 @@ var schema = {
     persona_documento_nro: {
         type: "String",
         label: "Documento Nº",
-        required: true
-    },
-    especialidad_id: {
-        type: "Number",
-        label: "ID Especialidad",
         required: true
     },
     persona_fecha_ingreso: {
