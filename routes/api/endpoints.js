@@ -367,6 +367,16 @@ class Endpoints {
 
 		app.get('/api/:code/tipoTurnoFac', validate, queryBuilder, this.getTable("TipoTurnoFac").bind(this));
 
+		app.get('/api/:code/estadoCiviles', validate, queryBuilder, this.getTable("EstadoCiviles").bind(this));
+
+		app.get('/api/:code/tipoDocumentos', validate, queryBuilder, this.getTable("TipoDocumentos").bind(this));
+
+		app.get('/api/:code/paises', validate, queryBuilder, this.getTable("Paises").bind(this));
+
+		app.get('/api/:code/provincias', validate, queryBuilder, this.getTable("Provincias").bind(this));
+
+		app.get('/api/:code/localidades', validate, queryBuilder, this.getTable("Localidades").bind(this));
+
 		app.post('/api/:code/turnos', validate, queryBuilder, this.newTurno.bind(this));
 
 		app.use(this.jsonSchemaValidation);
