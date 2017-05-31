@@ -222,7 +222,7 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         $scope.queryResults = {};
         bsLoadingOverlayService.start({ referenceId: 'queryResults' });
 
-        $http.get('/api/admin/' + client.code + '/' + table).then(function(res) {
+        $http.get('/api/' + client.code + '/' + table).then(function(res) {
             bsLoadingOverlayService.stop({ referenceId: 'queryResults' });
 
             if(res.data.result) {
