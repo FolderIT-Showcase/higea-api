@@ -110,6 +110,37 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
+    post:
+      tags:
+        - Pacientes
+      summary: Ingreso/modificación de pacientes
+      description: >-
+        Se debe especificar el código único del cliente al que se le cargará el
+        paciente. Las columnas no requeridas se completarán automáticamente en base
+        a los datos ingresados (por ejemplo, los IDs de provincia y país del paciente
+        se buscarán según la localidad ingresada). ~~Si se completa el ID del paciente,
+        se actualizará el registro (en caso que exista).~~ (aún no implementado)
+      operationId: postPacientes
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/Paciente"
+      responses:
+          '200':
+            $ref: '#/responses/Turnos'
+          '400':
+            $ref: '#/responses/BadRequest'
+          '500':
+            $ref: '#/responses/InternalError'
   '/{cliente}/turnos':
     get:
       tags:
@@ -154,7 +185,7 @@ paths:
         turno. Las columnas no requeridas se completarán automáticamente en base
         a los datos ingresados (por ejemplo, el Nº de documento del paciente
         se buscará del ID de paciente ingresado). ~~Si se completa el ID del turno,
-        se actualizará el registro (en caso que exista).~~
+        se actualizará el registro (en caso que exista).~~ (aún no implementado)
       operationId: postTurnos
       produces:
         - application/json
@@ -166,7 +197,6 @@ paths:
           type: string
         - in: "body"
           name: "body"
-          description: "Datos de usuario a autenticar"
           required: true
           schema:
             $ref: "#/definitions/Turno"
