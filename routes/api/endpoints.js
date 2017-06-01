@@ -77,13 +77,26 @@ var schemas = {
 				type: "object",
 				properties: SQLAnywhere.validate('Turnos')
 			}
+		},
+		"/api/:code/pacientes": {
+			params: {
+				type: "object",
+				properties: {
+					code: {
+						type: "string",
+						required: true
+					}
+				}
+			},
+			body: {
+				type: "object",
+				properties: SQLAnywhere.validate('Pacientes')
+			}
 		}
 	}
 };
 
-
 // Definición de middlewares
-
 var authenticate = function (req, res, next) {
 	var token = req.body.token || req.query.token || req.headers['x-access-token'] || req.headers['authorization'];
 	var username = req.body.username || req.query.username || req.headers['username'];
@@ -379,6 +392,8 @@ class Endpoints {
 
 		app.post('/api/:code/turnos', validate, queryBuilder, this.newTurno.bind(this));
 
+		app.post('/api/:code/pacientes', validate, queryBuilder, this.newPaciente.bind(this));
+
 		app.use(this.jsonSchemaValidation);
 
 		//Aplicación de middlewares administrativos
@@ -554,13 +569,52 @@ class Endpoints {
 			turno.obra_social_id = plan_os.obra_social_id;
 
 			return Turnos.save(turno);
-		}).then((row) => {
+		}).then((turno) => {
 			res.json({
 				result: true,
 				data: {
 					columns: Turnos.columns,
-					rows: row
+					rows: turno
 				}
+			});
+		}).catch((err) => {
+			res.json({
+				result: false,
+				err: err.message
+			});
+		});
+	}
+
+	newPaciente(req, res) {
+		var code = req.params.code;
+		var paciente = req.body;
+
+		var Pacientes = SQLAnywhere.table(code, 'Pacientes');
+		var Paises = SQLAnywhere.table(code, 'Paises');
+		var Localidades = SQLAnywhere.table(code, 'Localidades');
+		var Provincias = SQLAnywhere.table(code, 'Provincias');
+
+		//Obtener datos adicionales y autocompletar
+		Localidades.join(Provincias, Provincias.provincia_id)
+			.join(Paises, Provincias.pais_id, Paises.pais_id);
+
+		Localidades.findOne({
+			where: {
+				localidad_id: paciente.localidad_id
+			}
+		}).then((localidad) => {
+			logger.debug(localidad);
+			paciente.provincia_id = localidad.provincia_id;
+			paciente.pais_id = localidad.pais_id;
+
+			return Pacientes.save(paciente).then((paciente) => {
+				res.json({
+					result: true,
+					data: {
+						columns: Pacientes.columns,
+						rows: paciente
+					}
+				});
 			});
 		}).catch((err) => {
 			res.json({

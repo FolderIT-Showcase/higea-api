@@ -19,24 +19,24 @@ var schema = {
     },
     pais_id: {
         type: "Number",
-        label: "País"
+        label: "ID País"
     },
     provincia_id: {
         type: "Number",
-        label: "Provincia"
+        label: "ID Provincia"
     },
     localidad_id: {
         type: "Number",
-        label: "Localidad",
+        label: "ID Localidad",
         required: true
     },
     estado_civil_id: {
         type: "Number",
-        label: "Estado Civil"
+        label: "ID Estado Civil"
     },
     documento_id: {
-        type: "String",
-        label: "Tipo de Documento",
+        type: "Number",
+        label: "ID Tipo de Documento",
         required: true
     },
     persona_apellido: {
