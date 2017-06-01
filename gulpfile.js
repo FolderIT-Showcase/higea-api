@@ -8,9 +8,18 @@ var bowerFiles = require('main-bower-files'),
     cleanCSS = require('gulp-clean-css'),
     exists = require('path-exists').sync;
 
+var config = require('./config'),
+    logger = require('tracer').colorConsole(config.loggerFormat);
+
 var bowerFilesMin = bowerFiles().map((path, index, arr) => {
     var newPath = path.replace(/.([^.]+)$/g, '.min.$1');
     return exists(newPath) ? newPath : path;
+});
+
+
+process.on('uncaughtException', (err) => {
+    logger.error(err.message);
+    logger.debug(err.stack);
 });
 
 gulp.task('frontend', function () {
