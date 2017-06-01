@@ -534,6 +534,10 @@ class Endpoints {
 		var Pacientes = SQLAnywhere.table(code, 'Pacientes');
 		var PlanesObraSocial = SQLAnywhere.table(code, 'PlanesObraSocial');
 
+		if (turno.tipo_turno_fac_id === 1) {
+			turno.efector_id = turno.profesional_id;
+		}
+
 		// Obtener datos del paciente y completar datos del turno
 		Pacientes.findOne({
 			where: {
