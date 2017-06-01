@@ -603,7 +603,6 @@ class Endpoints {
 				localidad_id: paciente.localidad_id
 			}
 		}).then((localidad) => {
-			logger.debug(localidad);
 			paciente.provincia_id = localidad.provincia_id;
 			paciente.pais_id = localidad.pais_id;
 
