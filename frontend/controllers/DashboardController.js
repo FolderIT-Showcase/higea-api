@@ -4,6 +4,63 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
     $scope.client = {};
     $scope.queryReload = function() {};
 
+    $scope.tables = [{
+        id: "profesionales",
+        label: "Profesionales"
+    }, {
+        id: "pacientes",
+        label: "Pacientes"
+    }, {
+        id: "turnos",
+        label: "Turnos"
+    }, {
+        id: "especialidades",
+        label: "Especialidades"
+    }, {
+        id: "obrasSociales",
+        label: "Obras Sociales"
+    }, {
+        id: "planesObraSocial",
+        label: "Planes de Obras Sociales"
+    }, {
+        id: "estadoCiviles",
+        label: "Estados Civiles"
+    }, {
+        id: "tipoDocumentos",
+        label: "Tipos de Documentos"
+    }, {
+        id: "paises",
+        label: "Países"
+    }, {
+        id: "provincias",
+        label: "Provincias"
+    }, {
+        id: "localidades",
+        label: "Localidades"
+    }, {
+        id: "servicios",
+        label: "Servicios (Motivos)"
+    }, {
+        id: "tipoOrigenTurno",
+        label: "Tipos de Origen de Turnos"
+    }, {
+        id: "tipoTurnoFac",
+        label: "Tipos de Turnos"
+    }, {
+        id: "estadoTurnos",
+        label: "Estados de Turnos"
+    }];
+
+    $scope.turnosTables = [{
+        table: 'profesionales',
+        label: 'Profesional',
+        column_id: 'profesional_id'
+    }, {
+        table: 'pacientes',
+        label: 'Paciente',
+        column_id: 'paciente_id'
+    }];
+
     $scope.vmC = {
         dtOptions: DTOptionsBuilder.newOptions()
         .withPaginationType('full_numbers')
