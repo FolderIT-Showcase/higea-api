@@ -378,7 +378,11 @@ class Endpoints {
 
 		app.get('/api/:code/tipoOrigenTurno', validate, queryBuilder, this.getTable("TipoOrigenTurno").bind(this));
 
-		app.get('/api/:code/tipoTurnoFac', validate, queryBuilder, this.getTable("TipoTurnoFac").bind(this));
+		// app.get('/api/:code/tipoTurnoFac', validate, queryBuilder, this.getTable("TipoTurnoFac").bind(this));
+
+		app.get('/api/:code/tipoTurnos', validate, queryBuilder, this.getTable("TipoConsultaGrupo").bind(this));
+
+		app.get('/api/:code/motivoTurnos', validate, queryBuilder, this.getTable("TipoEpisodioConsulta").bind(this));
 
 		app.get('/api/:code/estadoCiviles', validate, queryBuilder, this.getTable("EstadoCiviles").bind(this));
 

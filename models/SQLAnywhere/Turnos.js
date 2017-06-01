@@ -46,8 +46,9 @@ var schema = {
     },
     tipo_turno_fac_id: {
         type: "Number",
-        label: "ID Tipo de Turno",
-        required: true
+        label: "ID Consulta",
+        enum: [1, 2, 3],
+        default: 1
     },
     tot_id: {
         type: "Number",
@@ -56,7 +57,7 @@ var schema = {
     },
     turno_tipo_turno: {
         type: "Number",
-        label: "ID Tipo Consulta",
+        label: "ID Motivo",
         required: true
     },
     turno_fecha: {
