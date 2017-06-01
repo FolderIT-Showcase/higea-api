@@ -380,7 +380,7 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
-  '/{cliente}/tipoTurnoFac':
+  '/{cliente}/tipoTurnos':
     get:
       tags:
         - Turnos
@@ -389,7 +389,7 @@ paths:
         Se debe especificar el código único del cliente del que se quieren
         obtener los tipos de turno. En la query string se pueden agregar opcionalmente los
         nombres de las columnas disponibles con el valor a consultar.
-      operationId: getTipoTurnoFac
+      operationId: getTipoTurnos
       produces:
         - application/json
       parameters:
@@ -398,14 +398,48 @@ paths:
           description: Código único del cliente
           required: true
           type: string
-        - name: tipo_turno_fac_id
+        - name: tcg_id
           in: query
           description: ID del tipo de turno a consultar.
           required: false
           type: string
       responses:
         '200':
-          $ref: '#/responses/TipoTurnoFac'
+          $ref: '#/responses/TipoTurnos'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
+  '/{cliente}/motivoTurnos':
+    get:
+      tags:
+        - Turnos
+      summary: Obtener los motivos de turno del cliente
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener los motivos de turno. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
+      operationId: getMotivoTurnos
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - name: tipo_consulta_id
+          in: query
+          description: ID del motivo de turno a consultar.
+          required: false
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/MotivoTurnos'
         '400':
           $ref: '#/responses/BadRequest'
         '401':
@@ -785,10 +819,10 @@ responses:
                   type: array
                   items:
                     $ref: '#/definitions/TipoOrigenTurno'
-  TipoTurnoFac:
+  TipoTurnos:
     description: Consulta exitosa
     schema:
-      title: "Tipos de Turno"
+      title: "Tipos de Turnos"
       allOf:
         - $ref: '#/definitions/Response'
         - type: object
@@ -804,6 +838,25 @@ responses:
                   type: array
                   items:
                     $ref: '#/definitions/TipoTurno'
+  MotivoTurnos:
+    description: Consulta exitosa
+    schema:
+      title: "Motivos de Turnos"
+      allOf:
+        - $ref: '#/definitions/Response'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                columns:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Column'
+                rows:
+                  type: array
+                  items:
+                    $ref: '#/definitions/MotivoTurno'
   EstadoTurnos:
     description: Consulta exitosa
     schema:
@@ -1074,13 +1127,15 @@ definitions:
         description: "ID del profesional que realizó la derivación del turno"
       tipo_turno_fac_id:
         type: number
-        description: "ID del tipo de turno (episodio, consulta, ...)"
+        description: "Consulta (1), Estudio (2) ó Internación (3)"
+        default: 1
+        enum: [ 1, 2, 3 ]
       tot_id:
         type: number
         description: "ID del tipo de origen del turno"
       turno_tipo_turno:
         type: number
-        description: "ID del tipo de consulta"
+        description: "ID del motivo del turno (o 'tipo de consulta' en Higea)"
       turno_fecha:
         type: string
         format: date
@@ -1274,12 +1329,49 @@ definitions:
   TipoTurno:
     type: object
     properties:
-      tipo_turno_fac_id:
+      tcg_id:
         type: number
         description: "ID único del tipo de turno"
-      tipo_turno_fac_nombre:
+      tcg_nombre:
         type: string
         description: "Nombre del tipo de turno"
+  MotivoTurno:
+    type: object
+    properties:
+      tipo_consulta_id:
+        type: number
+        description: "ID único del motivo de turno"
+      tcg_id:
+        type: number
+        description: "ID del tipo de turno asociado"
+      servicio_id:
+        type: number
+        description: "ID del servicio asociado"
+      tipo_consulta_nombre:
+        type: string
+        description: "Nombre del tipo de turno"
+      tipo_consulta_abreviatura:
+        type: string
+        description: "Abreviatura"
+      tipo_consulta_sincargo:
+        type: string
+        description: "Motivo sin cargo"
+        default: "N"
+        enum: [ "S", "N" ]
+      tipo_consulta_factor_duracion:
+        type: number
+        default: 1
+        description: "Factor de duración"
+      tipo_consulta_consulta:
+        type: string
+        default: "N"
+        enum: [ "S", "N" ]
+        description: "Indica si el motivo es específico a una consulta"
+      tipo_consulta_usa_equipo:
+        type: string
+        default: "N"
+        enum: [ "S", "N" ]
+        description: "Indica si el motivo utiliza un equipo médico"
   EstadoTurno:
     type: object
     properties:
