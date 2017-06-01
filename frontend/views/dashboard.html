@@ -27,8 +27,7 @@
                                             <li><a ng-click="viewTable(client, 'especialidades')" href="">Especialidades</a></li>
                                             <li><a ng-click="viewTable(client, 'turnos')" href="">Turnos</a></li>
                                             <li class="divider"></li>
-                                            <li><a ng-click="turnosProfesional(client)" href="">Turnos del Profesional...</a></li>
-                                            <li class="disabled"><a href="">En construcción...</a></li>
+                                        <li ng-repeat="table in turnosTables"><a ng-click="turnos(client, table)" href="">Turnos del {{ table.label }}...</a></li>
                                         </ul>
                                     </div>
                                 </td>

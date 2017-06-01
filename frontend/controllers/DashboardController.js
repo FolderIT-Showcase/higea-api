@@ -243,7 +243,8 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         $scope.queryReload = function() {
             $scope.getTable(client, table);
         };
-        $scope.queryCsv = client.name + '_' + table;
+        $scope.queryCsv = $scope.client.code + '_' + table;
+        $scope.vmQ.dtOptions.buttons[1].title = $scope.queryCsv + "_" + moment().format("YYYYMMDD_HH-mm-ss");
 
         var modalInstance = $uibModal.open({
             backdrop: 'static',
@@ -261,14 +262,15 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         });
     }
 
-    $scope.turnosProfesional = function(client) {
+    $scope.turnos = function(client, table) {
         $scope.client = client;
+        $scope.table = table;
         $scope.formData = {};
 
         var modalInstance = $uibModal.open({
             backdrop: 'static',
             scope: $scope,
-            templateUrl: 'views/modals/turnosProfesional.html'
+            templateUrl: 'views/modals/turnos.html'
         });
 
         modalInstance.result.then(function() {
@@ -276,32 +278,16 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         });
     }
 
-    $scope.getTurnosProfesional = function(profesional) {
-        $scope.queryResults = {};
-        bsLoadingOverlayService.start({ referenceId: 'queryResults' });
-
-        $http.get('/api/admin/' + $scope.client.code + '/turnos?profesional_id=' + profesional).then(function(res) {
-            bsLoadingOverlayService.stop({ referenceId: 'queryResults' });
-
-            if(res.data.result) {
-                $scope.queryResults = res.data.data;
-            } else {
-                toastr.error(res.data.err);
-            }
-        }).catch(function(res) {
-            bsLoadingOverlayService.stop({ referenceId: 'queryResults' });
-        });
-    }
-
-    $scope.viewTurnosProfesional = function(formData) {        
-        var profesional = formData.profesional;
+    $scope.viewTurnos = function(formData) {
+        var id = formData.id;
 
         $scope.queryResults = {};
-        $scope.modalTitle = "Turnos del Profesional: " + profesional;
+        $scope.modalTitle = "Turnos del " + $scope.table.label + ": " + id;
         $scope.queryReload = function() {
-            $scope.getTurnosProfesional(profesional);
+            $scope.getTurnos(id);
         };
-        $scope.queryCsv = $scope.client.name + '_turnos_' + profesional;
+        $scope.queryCsv = $scope.client.code + '_turnos_' + $scope.table.table + "_" + id;
+        $scope.vmQ.dtOptions.buttons[1].title = $scope.queryCsv + "_" + moment().format("YYYYMMDD_HH-mm-ss");
 
         var modalInstance = $uibModal.open({
             backdrop: 'static',
@@ -311,11 +297,36 @@ app.controller('DashboardController', ['$scope', '$filter', '$http', 'DTOptionsB
         });
 
         modalInstance.rendered.then(function() {
-            $scope.getTurnosProfesional(profesional);
+            $scope.getTurnos(formData);
         });
 
         modalInstance.result.then(function() {
         }, function() {
+        });
+    }
+
+    $scope.getTurnos = function(formData) {
+        var id = formData.id;
+        var fecha = formData.fecha;
+        var url = '/api/' + $scope.client.code + '/turnos?' + $scope.table.column_id +  '=' + id;
+        
+        if (fecha && moment(fecha).isValid()) {
+            url += "&turno_fecha=" + moment(fecha).format("YYYY-MM-DD");
+        }
+        
+        $scope.queryResults = {};
+        bsLoadingOverlayService.start({ referenceId: 'queryResults' });
+
+        $http.get(url).then(function(res) {
+            bsLoadingOverlayService.stop({ referenceId: 'queryResults' });
+
+            if(res.data.result) {
+                $scope.queryResults = res.data.data;
+            } else {
+                toastr.error(res.data.err);
+            }
+        }).catch(function(res) {
+            bsLoadingOverlayService.stop({ referenceId: 'queryResults' });
         });
     }
 
