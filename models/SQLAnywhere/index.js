@@ -70,8 +70,12 @@ class Table {
         let order = " ORDER BY 1 ";
         let from = " FROM " + this.name + this.joins;
 
-        if (options.limit) {
-            limit = "TOP " + options.limit;
+        if (typeof (options.limit) !== "undefined") {
+            if (options.limit === 0) {
+                limit = "";
+            } else {
+                limit = "TOP " + options.limit;
+            }
         }
 
         if (!_.isEmpty(options.where)) {
@@ -233,7 +237,9 @@ class Table {
         this.joins += " LEFT " + type + " JOIN " + table.name + " ON " + leftCol.schema + " = " + rightCol.schema + " " + table.joins;
 
         // Anexar esquemas
-        this.schema = _.merge(this.schema, table.schema);
+        let s = table.schema;
+        _.merge(s, this.schema);
+        this.schema = s;
 
         // Reconstruir columnas
         this.rebuildColumns();
@@ -403,9 +409,19 @@ module.exports = {
 
         return new Table(tableName, options);
     },
-    validate: function (tableName, noRequireds = false) {
+    validate: function (tableList, noRequireds = false) {
         let objValidate = {};
-        let schema = models[tableName];
+        let schema = {};
+
+        if (!Array.isArray(tableList)) {
+            tableList = [tableList];
+        }
+
+        tableList.forEach((table) => {
+            let s = models[table];
+            _.merge(s, schema);
+            schema = s;
+        });
 
         Object.keys(schema).forEach(e => {
             let column = schema[e];
@@ -436,9 +452,9 @@ module.exports = {
                 objValidate[e].enum = column.enum;
             }
 
-            if (column.default !== undefined) {
-                objValidate[e].default = column.default;
-            }
+            // if (column.default !== undefined) {
+            //     objValidate[e].default = column.default;
+            // }
 
             if (column.required === true && noRequireds === false) {
                 objValidate[e].required = true;
