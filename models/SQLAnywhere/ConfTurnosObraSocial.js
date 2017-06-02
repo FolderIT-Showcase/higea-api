@@ -1,5 +1,5 @@
 var schema = {
-    conf_turnos_obra_social: {
+    conf_turnos_obra_social_id: {
         type: "Number",
         label: "ID Obra Social de Horario",
         identity: true
