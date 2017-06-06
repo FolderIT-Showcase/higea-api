@@ -42,9 +42,9 @@ var schema = {
         required: true
     },
     conf_turno_dia_atencion: {
-        type: "Number",
+        type: "String",
         label: "Día de Atención",
-        enum: [1, 2, 3, 4, 5, 6, 7], // 1 = domingo
+        enum: ["1", "2", "3", "4", "5", "6", "7"], // 1 = domingo
         required: true
     },
     conf_turno_efector_id: {
