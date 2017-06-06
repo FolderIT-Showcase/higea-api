@@ -207,6 +207,49 @@ paths:
             $ref: '#/responses/BadRequest'
           '500':
             $ref: '#/responses/InternalError'
+  '/{cliente}/agendas':
+    get:
+      tags:
+        - Turnos
+      summary: Obtener los turnos otorgados y disponibles
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener las agendas. En la query string se pueden agregar opcionalmente los
+        nombres de las columnas disponibles con el valor a consultar.
+      operationId: getAgendas
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+        - name: profesional_id
+          in: query
+          type: string
+        - name: servicio_id
+          in: query
+          type: string
+        - name: plan_os_id
+          in: query
+          type: string
+        - name: agenda_fecha
+          in: query
+          type: string
+          format: date
+          description: Fecha a consultar. Se buscarán todas las agendas cuyo rango habilitado contenga la fecha indicada.
+      responses:
+        '200':
+          $ref: '#/responses/Localidades'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
   '/{cliente}/especialidades':
     get:
       tags:
