@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = require('lodash'),
+var _ = require('../../helpers/lodash'),
 	mongoose = require('mongoose'),
 	md5 = require('md5'),
 	jwt = require('jsonwebtoken'),
@@ -16,36 +16,6 @@ var _ = require('lodash'),
 
 var schemas = {
 	get: {
-		"/api/:code/profesionales": {
-			params: {
-				type: 'object',
-				properties: {
-					code: {
-						type: 'string',
-						required: true
-					}
-				}
-			},
-			query: {
-				type: 'object',
-				properties: SQLAnywhere.validate('Profesionales', true)
-			}
-		},
-		"/api/:code/especialidades": {
-			params: {
-				type: 'object',
-				properties: {
-					code: {
-						type: 'string',
-						required: true
-					}
-				}
-			},
-			query: {
-				type: 'object',
-				properties: SQLAnywhere.validate('Especialidades', true)
-			}
-		},
 		"/api/:code/turnos": {
 			params: {
 				type: 'object',
@@ -58,41 +28,26 @@ var schemas = {
 			},
 			query: {
 				type: 'object',
-				properties: SQLAnywhere.validate('Turnos', true)
+				properties: SQLAnywhere.validate(["Turnos", "Especialidades"], true)
+			}
+		},
+		"/api/:code/agendas": {
+			params: {
+				type: 'object',
+				properties: {
+					code: {
+						type: 'string',
+						required: true
+					}
+				}
+			},
+			query: {
+				type: 'object',
+				properties: SQLAnywhere.validate(["ConfiguracionTurnosProf", "ConfTurnosObraSocial", "ServiciosProfesionales"], true)
 			}
 		}
 	},
 	post: {
-		"/api/:code/turnos": {
-			params: {
-				type: "object",
-				properties: {
-					code: {
-						type: "string",
-						required: true
-					}
-				}
-			},
-			body: {
-				type: "object",
-				properties: SQLAnywhere.validate('Turnos')
-			}
-		},
-		"/api/:code/pacientes": {
-			params: {
-				type: "object",
-				properties: {
-					code: {
-						type: "string",
-						required: true
-					}
-				}
-			},
-			body: {
-				type: "object",
-				properties: SQLAnywhere.validate('Pacientes')
-			}
-		}
 	}
 };
 
@@ -228,9 +183,49 @@ var validate = function (req, res, next) {
 
 	if (schemas[method] && schemas[method][path]) {
 		schema = schemas[method][path];
+		return require('express-jsonschema').validate(schema)(req, res, next);
+
+		// Intentar construir el esquema, si se identifica una tabla definida
+	} else if (path.startsWith("/api/:code")) {
+		var tableName = path.split("/").splice(-1)[0];
+		tableName = _.snakeCase(tableName).charAt(0).toUpperCase() + tableName.slice(1);
+		var table = SQLAnywhere.table("", tableName);
+
+		// Si existe la tabla, construir el esquema
+		if (table) {
+			schema = {
+				params: {
+					type: 'object',
+					properties: {
+						code: {
+							type: 'string',
+							required: true
+						}
+					}
+				}
+			};
+
+			if (method === "get") {
+				schema.query = {
+					type: 'object',
+					properties: SQLAnywhere.validate(tableName, true)
+				};
+			}
+
+			if (method === "post") {
+				schema.body = {
+					type: 'object',
+					properties: SQLAnywhere.validate(tableName)
+				};
 	}
 
 	return require('express-jsonschema').validate(schema)(req, res, next);
+		} else {
+			next();
+		}
+	} else {
+		next();
+	}
 }
 
 var queryBuilder = function (req, res, next) {
@@ -264,7 +259,7 @@ var queryBuilder = function (req, res, next) {
 			Object.keys(req.body).forEach((q) => {
 				let value = req.body[q];
 
-				if (body[q]) {
+				if (typeof (body[q]) !== "undefined" && typeof (body[q]) !== "null") {
 					let type = body[q].type ? body[q].type.toLowerCase() : "string";
 
 					if (type === 'date' || (type === 'string' && body[q].isDate === true)) {
@@ -281,7 +276,12 @@ var queryBuilder = function (req, res, next) {
 					}
 				}
 
+				//Remover propiedad para evitar conflictos
+				if (req.body[q] === null || req.body[q] === undefined) {
+					delete req.body[q];
+				} else {
 				req.body[q] = value;
+				}
 			});
 		}
 
@@ -439,7 +439,7 @@ class Endpoints {
 		var responseData;
 
 		if (err.name === 'JsonSchemaValidation') {
-			logger.error(err);
+			logger.error(err.validations);
 			res.status(400);
 
 			responseData = {
