@@ -599,6 +599,10 @@ class Endpoints {
 								turno.turno_hora = horaActual.format("HH:mm:ss");
 								turno.turno_duracion = duracion;
 
+								if (horario.plan_os_id) {
+									turno.plan_os_id = horario.plan_os_id;
+								}
+
 								let fechaHoraActual = fechaActual.clone();
 								fechaHoraActual.set({
 									'hour': horaActual.get('hour'),
@@ -612,7 +616,11 @@ class Endpoints {
 										&& (t.profesional_id === turno.profesional_id
 											|| t.profesional_id === turno.conf_turno_efector_id)
 										&& t.servicio_id === turno.servicio_id) {
-										return true;
+										if (turno.plan_os_id && t.plan_os_id !== turno.plan_os_id) {
+											return false;
+										} else {
+											return true
+										}
 									} else {
 										return false;
 									}
