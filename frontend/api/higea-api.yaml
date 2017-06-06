@@ -974,7 +974,7 @@ responses:
   BadRequest:
     description: "Solicitud inválida"
     schema:
-      $ref: '#/definitions/Error'
+      $ref: '#/definitions/BadRequest'
   Unauthorized:
     description: "Autenticación inválida"
     schema:
@@ -1010,6 +1010,35 @@ definitions:
       err:
         type: string
         description: "Mensaje descriptivo del error"
+  BadRequest:
+    allOf:
+    - $ref: "#/definitions/Error"
+    - title: "BadRequest"
+    - properties:
+        validations:
+          type: object
+          properties:
+            query:
+              type: array
+              description: "Errores de validación encontrados en la query string del request, generalmente en métodos GET"
+              items:
+                $ref: "#/definitions/Validation"
+            body:
+              type: array
+              description: "Errores de validación encontrados en el body del request, generalmente en métodos POST"
+              items:
+                $ref: "#/definitions/Validation"
+  Validation:
+    type: object
+    properties:
+      property:
+        type: string
+        description: "Nombre del header con nombre de la propiedad"
+      messages:
+        type: array
+        items:
+              type: string
+              description: "Mensaje descriptivo del error de validación"
   Column:
     type: object
     properties:
