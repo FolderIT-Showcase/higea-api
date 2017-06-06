@@ -217,9 +217,9 @@ var validate = function (req, res, next) {
 					type: 'object',
 					properties: SQLAnywhere.validate(tableName)
 				};
-	}
+			}
 
-	return require('express-jsonschema').validate(schema)(req, res, next);
+			return require('express-jsonschema').validate(schema)(req, res, next);
 		} else {
 			next();
 		}
@@ -280,7 +280,7 @@ var queryBuilder = function (req, res, next) {
 				if (req.body[q] === null || req.body[q] === undefined) {
 					delete req.body[q];
 				} else {
-				req.body[q] = value;
+					req.body[q] = value;
 				}
 			});
 		}
@@ -393,6 +393,8 @@ class Endpoints {
 		app.get('/api/:code/provincias', validate, queryBuilder, this.getTable("Provincias").bind(this));
 
 		app.get('/api/:code/localidades', validate, queryBuilder, this.getTable("Localidades").bind(this));
+
+		app.get('/api/:code/agendas', validate, queryBuilder, this.getAgenda.bind(this));
 
 		app.post('/api/:code/turnos', validate, queryBuilder, this.newTurno.bind(this));
 
@@ -519,6 +521,86 @@ class Endpoints {
 				res.status(err.status);
 			}
 
+			res.json({
+				result: false,
+				err: err.message
+			});
+		});
+	}
+
+	getAgenda(req, res) {
+		var code = req.params.code;
+
+		if (req.queryWhere.profesional_id) {
+			let profesional_id = req.queryWhere.profesional_id;
+			delete req.queryWhere.profesional_id;
+			req.queryWhere["$or"] = [{
+				profesional_id: profesional_id
+			}, {
+				conf_turno_efector_id: profesional_id
+			}];
+		}
+
+		var Turnos = SQLAnywhere.table(code, "Turnos");
+		var ConfiguracionTurnosProf = SQLAnywhere.table(code, "ConfiguracionTurnosProf");
+		var ConfTurnosObraSocial = SQLAnywhere.table(code, "ConfTurnosObraSocial");
+		var ServiciosProfesionales = SQLAnywhere.table(code, "ServiciosProfesionales");
+
+		ConfiguracionTurnosProf.join(ConfTurnosObraSocial, ConfTurnosObraSocial.conf_turno_id)
+			.join(ServiciosProfesionales, ServiciosProfesionales.servicio_profesional_id);
+
+		ConfiguracionTurnosProf.find({
+			where: req.queryWhere,
+			limit: 0
+		}).then((horarios) => {
+			return new Promise((resolve, reject) => {
+				let turnosAll = [];
+
+				// Filtrar horarios de atención
+				let horariosAtencion = _.filter(horarios, (horario) => {
+					return horario.conf_turno_atiende === "S";
+				});
+
+				_.forEachCb(horariosAtencion, (horario, next) => {
+					let turnosWhere = {
+						turno_fecha: {
+							$between: [horario.conf_turno_fecha_ini, horario.conf_turno_fecha_fin]
+						},
+						turno_hora: {
+							$between: [horario.conf_turno_hora_ini, horario.conf_turno_hora_fin]
+						},
+						servicio_id: horario.servicio_id,
+						profesional_id: horario.profesional_id || horario.conf_turno_efector_id
+					};
+
+					if (horario.plan_os_id) {
+						turnosWhere.plan_os_id = horario.plan_os_id;
+					}
+
+					Turnos.find({
+						where: turnosWhere
+					}).then((turnos) => {
+						// TODO: Agregar turnos vacíos
+
+						turnosAll = _.unionBy(turnosAll, turnos, "turnos_id");
+						next();
+					}).catch(reject);
+				}, (horariosAtencion) => {
+					// TODO: Quitar turnos vacíos de horarios de NO atención
+
+
+					// TODO: Quitar turnos vacíos duplicados
+
+					turnosAll.sort((a, b) => a.turnos_id - b.turnos_id);
+					resolve(turnosAll);
+				});
+			});
+		}).then((turnos) => {
+			res.json({
+				result: true,
+				data: turnos
+			});
+		}).catch((err) => {
 			res.json({
 				result: false,
 				err: err.message
