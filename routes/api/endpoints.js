@@ -43,7 +43,13 @@ var schemas = {
 			},
 			query: {
 				type: 'object',
-				properties: SQLAnywhere.validate(["ConfiguracionTurnosProf", "ConfTurnosObraSocial", "ServiciosProfesionales"], true)
+				properties: SQLAnywhere.validate(["ConfiguracionTurnosProf", "ConfTurnosObraSocial", "ServiciosProfesionales"], true),
+				additionalProperties: {
+					agenda_fecha: {
+						type: "string",
+						isDate: true
+					}
+				}
 			}
 		}
 	},
@@ -183,10 +189,15 @@ var validate = function (req, res, next) {
 
 	if (schemas[method] && schemas[method][path]) {
 		schema = schemas[method][path];
-		return require('express-jsonschema').validate(schema)(req, res, next);
+		if (schema.query && schema.query.additionalProperties) {
+			for (let p in schema.query.additionalProperties) {
+				schema.query.properties[p] = schema.query.additionalProperties[p];
+			}
+		}
 
-		// Intentar construir el esquema, si se identifica una tabla definida
+		return require('express-jsonschema').validate(schema)(req, res, next);
 	} else if (path.startsWith("/api/:code")) {
+		// Intentar construir el esquema, si se identifica una tabla definida
 		var tableName = path.split("/").splice(-1)[0];
 		tableName = _.snakeCase(tableName).charAt(0).toUpperCase() + tableName.slice(1);
 		var table = SQLAnywhere.table("", tableName);
