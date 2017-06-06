@@ -1,5 +1,6 @@
 let fs = require('fs'),
     _ = require('lodash'),
+    moment = require('moment'),
     mongoose = require('mongoose'),
     Sybase = require('sybase');
 
@@ -63,7 +64,7 @@ class Table {
         }));
     }
 
-    find(options = {}) {
+    _buildQuery(options = {}) {
         let limit = "TOP 100";
         let columns = _.map(this.schema, e => e.schema).join(", ");
         let where = "";
@@ -80,64 +81,18 @@ class Table {
 
         if (!_.isEmpty(options.where)) {
             where = " WHERE ";
-            let i = 0;
-            let joint = "";
             let conditions = "";
+            let i = 0;
 
             for (let column in options.where) {
                 let value = options.where[column];
-                let table = this.name;
-                let type;
+                let condition = this._buildOperator(column, value, i === 0);
 
-                if (i > 0) {
-                    joint = " AND ";
+                if (condition) {
+                    i++;
                 }
 
-                if (typeof (value) === 'object') {
-                    let obj = options.where[column];
-                    value = obj.value;
-
-                    if (i > 0 && obj.joint) {
-                        joint = " " + obj.joint + " ";
-                    }
-
-                    if (obj.table) {
-                        if (typeof (obj.table) === 'object') {
-                            if (!obj.table.schema[column]) {
-                                continue;
-                            }
-
-                            type = obj.table.schema[column].type.toLowerCase();
-                            table = obj.table.name;
-                        } else {
-                            type = 'unknown';
-                            table = obj.table;
-                        }
-                    } else {
-                        if (!this.schema[column]) {
-                            continue;
-                        }
-
-                        type = this.schema[column].type.toLowerCase();
-                    }
-                } else {
-                    if (!this.schema[column]) {
-                        continue;
-                    }
-
-                    type = this.schema[column].type.toLowerCase();
-
-                    if (this.schema[column]) {
-                        table = this.schema[column].table;
-                    }
-                }
-
-                if (type !== 'number' || isNaN(Number(value))) {
-                    value = "'" + value + "'";
-                }
-
-                conditions += joint + table + "." + column + " = " + value;
-                i++;
+                conditions += condition;
             }
 
             if (conditions) {
@@ -203,15 +158,52 @@ class Table {
         query += " " + where + " \n\n";
         query += " " + order + " ";
 
-        return new Promise((resolve, reject) => {
-            this.connectDatabase().then(() => {
-                return this.queryDatabase(query);
-            }).then((rows) => {
-                this.disconnectDatabase();
+        return query;
+    }
 
-                resolve(rows);
+    _parseRows(rows) {
+        rows.forEach((row) => {
+            for (let column in row) {
+                let value = row[column];
+                let type = this.schema[column].type ? this.schema[column].type.toLowerCase() : "string";
+
+                if (type === 'date' || (type === 'string' && this.schema[column].isDate === true)) {
+                    value = moment(value).format("YYYY-MM-DD");
+                }
+
+                if (type === 'time' || (type === 'string' && this.schema[column].isTime === true)) {
+                    let time = moment(value).isValid() ? moment(value).format("HH:mm:ss") : undefined;
+                    value = time;
+                }
+
+                if (type === 'number' || (type === 'string' && this.schema[column].isNumber === true)) {
+                    value = Number(value);
+                }
+
+                row[column] = value;
+            }
+        });
+
+        return rows;
+    }
+
+    find(options = {}) {
+        let query = this._buildQuery(options);
+        let rowsParsed, db;
+
+        return new Promise((resolve, reject) => {
+            this.connectDatabase().then((newDb) => {
+                db = newDb;
+                return this.queryDatabase(query, db);
+            }).then((rows) => {
+                // Parsear resultados
+                rowsParsed = this._parseRows(rows);
+
+                return this.disconnectDatabase(db);
+            }).then(() => {
+                resolve(rowsParsed);
             }).catch((err) => {
-                this.disconnectDatabase();
+                this.disconnectDatabase(db);
 
                 reject(err);
             });
@@ -237,7 +229,7 @@ class Table {
         this.joins += " LEFT " + type + " JOIN " + table.name + " ON " + leftCol.schema + " = " + rightCol.schema + " " + table.joins;
 
         // Anexar esquemas
-        let s = table.schema;
+        let s = _.merge({}, table.schema);
         _.merge(s, this.schema);
         this.schema = s;
 
@@ -249,7 +241,7 @@ class Table {
 
     save(row) {
         return new Promise((resolve, reject) => {
-            let columns, values = [];
+            let columns, values = [], db;
 
             // Remover el ID de la fila (solo insertar nuevos registros)
             if (row.hasOwnProperty(this.id.name)) {
@@ -273,46 +265,47 @@ class Table {
             query += " ( " + columns + " ) ";
             query += " VALUES ( " + values + " ) ";
 
-            this.connectDatabase().then(() => {
-                return this.queryDatabase(query);
+            this.connectDatabase().then((newDb) => {
+                db = newDb;
+                return this.queryDatabase(query, db);
             }).then((rows) => {
                 // Si es un INSERT, buscar la fila recien insertada
                 if (query.trim().split(" ")[0] === "INSERT") {
-                    this.queryDatabase("SELECT @@IDENTITY").then((id) => {
+                    this.queryDatabase("SELECT @@IDENTITY", db).then((id) => {
                         if (id && id.length) {
                             let columns = _.map(this.schema, e => e.schema).join(", ");
 
                             id = id[0]["@@IDENTITY"];
 
-                            this.db.query("SELECT " + columns + " FROM " + this.name + " WHERE " + this.id.name + " = " + id, (err, row) => {
+                            db.query("SELECT " + columns + " FROM " + this.name + " WHERE " + this.id.name + " = " + id, (err, row) => {
                                 if (err) {
                                     reject(err);
                                 } else {
                                     resolve(row);
                                 }
 
-                                this.disconnectDatabase();
+                                this.disconnectDatabase(db);
                             });
                         } else {
                             resolve([]);
-                            this.disconnectDatabase();
+                            this.disconnectDatabase(db);
                         }
                     }).catch(reject);
                 } else {
                     resolve(rows);
-                    this.disconnectDatabase();
+                    this.disconnectDatabase(db);
                 }
             }).catch((err) => {
-                this.disconnectDatabase();
+                this.disconnectDatabase(db);
 
                 reject(err);
             });
         });
     }
 
-    queryDatabase(query) {
+    queryDatabase(query, db) {
         return new Promise((resolve, reject) => {
-            this.db.query(query, (err, data) => {
+            db.query(query, (err, data) => {
                 if (err) {
                     return reject(err);
                 }
@@ -324,38 +317,29 @@ class Table {
 
     connectDatabase() {
         return new Promise((resolve, reject) => {
-            this.getDatabase().then(() => {
-                this.db.connect((err) => {
+            this.getDatabase().then((db) => {
+                db.connect((err) => {
                     if (err) {
-                        return reject(err);
+                        reject(err);
+                    } else {
+                        resolve(db);
                     }
-
-                    resolve();
                 });
             }).catch(reject);
         });
     }
 
-    disconnectDatabase() {
+    disconnectDatabase(db) {
         return new Promise((resolve, reject) => {
             this.getDatabase().then(() => {
-                this.db.disconnect((err) => {
-                    if (err) {
-                        return reject(err);
-                    }
-
-                    resolve();
-                });
+                db.disconnect();
+                resolve();
             }).catch(reject);
         });
     }
 
     getDatabase() {
         return new Promise((resolve, reject) => {
-            if (this.db) {
-                return resolve();
-            }
-
             this.validateClient(this.code).then((client) => {
                 if (!client) {
                     return reject({
@@ -369,8 +353,8 @@ class Table {
                     });
                 }
 
-                this.db = new Sybase(client.dbHost, client.dbPort, client.dbServername, client.dbUsername, client.dbPassword);
-                resolve();
+                let db = new Sybase(client.dbHost, client.dbPort, client.dbServername, client.dbUsername, client.dbPassword);
+                resolve(db);
             }).catch(reject);
         });
     }
@@ -399,6 +383,119 @@ class Table {
             }
         });
     }
+
+    _buildOperator(column, value, first = false) {
+        let table = this.name;
+        let type, operator = " = ";
+        let joint = "";
+
+        if (first === false) {
+            joint = " AND ";
+        } else {
+            joint = "";
+        }
+
+        // Operadores OR, AND
+        if (["$or", "$and"].indexOf(column) > -1) {
+            let condition = "", subJoint = "";
+
+            switch (column) {
+                case "$or":
+                    subJoint = " OR ";
+                    break;
+
+                case "$and":
+                    subJoint = " AND ";
+                    break;
+            }
+
+            if (!Array.isArray(value) || !value.length) {
+                return "";
+            }
+
+            let i = 0;
+
+            value.forEach((obj) => {
+                for (let subColumn in obj) {
+                    let subValue = obj[subColumn];
+                    let subCondition = this._buildOperator(subColumn, subValue, true);
+
+                    if (subCondition) {
+                        if (i > 0) {
+                            subCondition = subJoint + subCondition;
+                        }
+                        i++;
+                    }
+
+                    condition += subCondition;
+                }
+            });
+
+            if (condition) {
+                return joint + " ( " + condition + " ) ";
+            } else {
+                return "";
+            }
+        }
+
+        if (typeof (value) === 'object') {
+            let obj = value;
+
+            if (obj.table) {
+                if (typeof (obj.table) === 'object') {
+                    if (!obj.table.schema[column]) {
+                        return "";
+                    }
+
+                    type = obj.table.schema[column].type.toLowerCase();
+                    table = obj.table.name;
+                } else {
+                    type = 'unknown';
+                    table = obj.table;
+                }
+            } else {
+                if (!this.schema[column]) {
+                    return "";
+                }
+
+                type = this.schema[column].type.toLowerCase();
+            }
+
+            // Operador BETWEEN
+            if (obj.hasOwnProperty("$between") && obj["$between"].length == 2) {
+                operator = " BETWEEN ";
+
+                if (type !== 'number' || isNaN(Number(value))) {
+                    obj["$between"][0] = "'" + obj["$between"][0] + "'";
+                    obj["$between"][1] = "'" + obj["$between"][1] + "'";
+                }
+
+                value = obj["$between"][0] + " AND " + obj["$between"][1];
+            } else {
+                value = obj.value;
+
+                if (type !== 'number' || isNaN(Number(value))) {
+                    value = "'" + value + "'";
+                }
+            }
+        } else {
+            if (!this.schema[column]) {
+                return "";
+            }
+
+            type = this.schema[column].type.toLowerCase();
+
+            if (this.schema[column]) {
+                table = this.schema[column].table;
+            }
+
+            if (type !== 'number' || isNaN(Number(value))) {
+                value = "'" + value + "'";
+            }
+        }
+
+        return joint + table + "." + column + operator + value;
+    }
 }
 
 module.exports = {
@@ -407,7 +504,11 @@ module.exports = {
             code: code
         };
 
-        return new Table(tableName, options);
+        if (!models[tableName]) {
+            return;
+        } else {
+            return new Table(tableName, options)
+        };
     },
     validate: function (tableList, noRequireds = false) {
         let objValidate = {};
@@ -418,7 +519,7 @@ module.exports = {
         }
 
         tableList.forEach((table) => {
-            let s = models[table];
+            let s = _.merge({}, models[table]);
             _.merge(s, schema);
             schema = s;
         });
