@@ -241,12 +241,27 @@ class Table {
 
     save(row) {
         return new Promise((resolve, reject) => {
+            this._save(row).then(resolve).catch(reject);
+        });
+    }
+
+    _save(row) {
+        return new Promise((resolve, reject) => {
             let columns, values = [], db;
 
             // Remover el ID de la fila (solo insertar nuevos registros)
             if (row.hasOwnProperty(this.id.name)) {
                 row[this.id.name] = undefined;
             }
+
+            // Validar todos los campos requeridos
+            Object.keys(this.schema).forEach(c => {
+                if (this.schema[c].required === true && (!row.hasOwnProperty(c) || typeof (row[c]) === "undefined")) {
+                    return reject({
+                        message: "Falta el campo requerido: " + c
+                    });
+                }
+            });
 
             Object.keys(row).join(", ");
 
@@ -495,6 +510,22 @@ class Table {
         }
 
         return joint + table + "." + column + operator + value;
+    }
+
+    newRow() {
+        let row = {};
+
+        Object.keys(this.schema).forEach(c => {
+            if (this.schema[c].required === true || typeof (this.schema[c].default) !== "undefined") {
+                if (typeof (this.schema[c].default) !== "undefined") {
+                    row[c] = this.schema[c].default;
+                } else {
+                    row[c] = undefined;
+                }
+            }
+        });
+
+        return row;
     }
 }
 
