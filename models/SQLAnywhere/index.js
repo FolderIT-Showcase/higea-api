@@ -478,14 +478,28 @@ class Table {
 
             // Operador BETWEEN
             if (obj.hasOwnProperty("$between") && obj["$between"].length == 2) {
+                let valIzq, valDer;
+
                 operator = " BETWEEN ";
 
                 if (type !== 'number' || isNaN(Number(value))) {
-                    obj["$between"][0] = "'" + obj["$between"][0] + "'";
-                    obj["$between"][1] = "'" + obj["$between"][1] + "'";
+                    valIzq = "'" + obj["$between"][0] + "'";
+                    valDer = "'" + obj["$between"][1] + "'";
                 }
 
-                value = obj["$between"][0] + " AND " + obj["$between"][1];
+                value = valIzq + " AND " + valDer;
+
+                // Operador INBETWEEN
+            } else if (obj.hasOwnProperty("$inbetween") && obj["$inbetween"].length == 2) {
+                let val;
+
+                operator = " BETWEEN ";
+
+                if (type !== 'number' || isNaN(Number(value))) {
+                    val = "'" + obj["$inbetween"][1] + "'";
+                }
+
+                return joint + val + operator + table + "." + column + " AND " + table + "." + obj["$inbetween"][0];
             } else {
                 value = obj.value;
 
@@ -493,6 +507,7 @@ class Table {
                     value = "'" + value + "'";
                 }
             }
+
         } else {
             if (!this.schema[column]) {
                 return "";
