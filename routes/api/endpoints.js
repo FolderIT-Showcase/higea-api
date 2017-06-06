@@ -530,6 +530,7 @@ class Endpoints {
 
 	getAgenda(req, res) {
 		var code = req.params.code;
+		var horariosAtencion = [], horariosNoAtencion = [];
 
 		if (req.queryWhere.profesional_id) {
 			let profesional_id = req.queryWhere.profesional_id;
@@ -541,23 +542,43 @@ class Endpoints {
 			}];
 		}
 
+		if (req.queryWhere.agenda_fecha) {
+			req.queryWhere.conf_turno_fecha_fin = {
+				"$inbetween": ["conf_turno_fecha_fin", req.queryWhere.agenda_fecha]
+			};
+		}
+
 		var Turnos = SQLAnywhere.table(code, "Turnos");
 		var ConfiguracionTurnosProf = SQLAnywhere.table(code, "ConfiguracionTurnosProf");
 		var ConfTurnosObraSocial = SQLAnywhere.table(code, "ConfTurnosObraSocial");
 		var ServiciosProfesionales = SQLAnywhere.table(code, "ServiciosProfesionales");
+		var PlanesObraSocial = SQLAnywhere.table(code, "PlanesObraSocial");
 
 		ConfiguracionTurnosProf.join(ConfTurnosObraSocial, ConfTurnosObraSocial.conf_turno_id)
-			.join(ServiciosProfesionales, ServiciosProfesionales.servicio_profesional_id);
+			.join(ServiciosProfesionales, ServiciosProfesionales.servicio_profesional_id)
+			.join(PlanesObraSocial, ConfTurnosObraSocial.obra_social_id, PlanesObraSocial.obra_social_id);
+
+		req.queryWhere.conf_turnos_atiende = "S";
 
 		ConfiguracionTurnosProf.find({
 			where: req.queryWhere,
 			limit: 0
 		}).then((horarios) => {
+			horariosAtencion = horarios;
+			req.queryWhere.conf_turnos_atiende = "N";
+			if (req.queryWhere.plan_os_id) {
+				delete req.queryWhere.plan_os_id;
+			}
+
+			return ConfiguracionTurnosProf.find({
+				where: req.queryWhere,
+				limit: 0
+			});
+		}).then((horarios) => {
+			horariosNoAtencion = horarios;
+
 			return new Promise((resolve, reject) => {
 				let turnosAll = [];
-
-				// Filtrar horarios de atención
-				let horariosAtencion = _.filter(horarios, horario => horario.conf_turno_atiende === "S");
 
 				_.forEachCb(horariosAtencion, (horario, next) => {
 					let turnosWhere = {
@@ -640,8 +661,6 @@ class Endpoints {
 					}).catch(reject);
 				}, (horariosAtencion) => {
 					// Quitar turnos vacíos de horarios de NO atención
-					let horariosNoAtencion = _.filter(horarios, horario => horario.conf_turno_atiende === "N");
-
 					horariosNoAtencion.forEach((horario) => {
 						let fechaInicio = moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD");
 						let fechaFin = moment(horario.conf_turno_fecha_fin, "YYYY-MM-DD");
