@@ -557,9 +557,7 @@ class Endpoints {
 				let turnosAll = [];
 
 				// Filtrar horarios de atención
-				let horariosAtencion = _.filter(horarios, (horario) => {
-					return horario.conf_turno_atiende === "S";
-				});
+				let horariosAtencion = _.filter(horarios, horario => horario.conf_turno_atiende === "S");
 
 				_.forEachCb(horariosAtencion, (horario, next) => {
 					let turnosWhere = {
@@ -580,18 +578,84 @@ class Endpoints {
 					Turnos.find({
 						where: turnosWhere
 					}).then((turnos) => {
-						// TODO: Agregar turnos vacíos
+						// Agregar turnos vacíos
+						let turnosVacios = [];
+						let fechaInicio = moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD");
+						let fechaActual = moment.max(moment(), moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD"));
+						let fechaFin = moment(horario.conf_turno_fecha_fin, "YYYY-MM-DD");
 
-						turnosAll = _.unionBy(turnosAll, turnos, "turnos_id");
+						while (fechaActual <= fechaFin) {
+							let horaInicio = moment(horario.conf_turno_hora_ini, "HH:mm:ss");
+							let horaActual = moment(horario.conf_turno_hora_ini, "HH:mm:ss");
+							let horaFin = moment(horario.conf_turno_hora_fin, "HH:mm:ss");
+							let duracion = horario.conf_turno_duracion_turno;
+
+							while (horaActual <= horaFin) {
+								let turno = Turnos.newRow();
+
+								turno.profesional_id = horario.profesional_id || horario.conf_turno_efector_id;
+								turno.servicio_id = horario.servicio_id;
+								turno.turno_fecha = fechaActual.format("YYYY-MM-DD");
+								turno.turno_hora = horaActual.format("HH:mm:ss");
+								turno.turno_duracion = duracion;
+
+								let fechaHoraActual = fechaActual.clone();
+								fechaHoraActual.set({
+									'hour': horaActual.get('hour'),
+									'minute': horaActual.get('minute')
+								});
+
+								// Verificar que el turno no esté ocupado y sea a futuro
+								if (fechaHoraActual.isAfter(moment(), "minutes") && _.findIndex(turnos, (t) => {
+									if (t.turno_fecha === turno.turno_fecha
+										&& t.turno_hora === turno.turno_hora
+										&& (t.profesional_id === turno.profesional_id
+											|| t.profesional_id === turno.conf_turno_efector_id)
+										&& t.servicio_id === turno.servicio_id) {
+										return true;
+									} else {
+										return false;
+									}
+								}) === -1) {
+									turnos.push(turno);
+								}
+
+								horaActual.add(duracion, "minutes");
+							}
+							fechaActual.add(1, "days");
+						}
+
+						// Evitar agregar turnos vacíos duplicados
+						turnosAll = _.unionWith(turnosAll, turnos, _.isEqual);
+
 						next();
 					}).catch(reject);
 				}, (horariosAtencion) => {
-					// TODO: Quitar turnos vacíos de horarios de NO atención
+					// Quitar turnos vacíos de horarios de NO atención
+					let horariosNoAtencion = _.filter(horarios, horario => horario.conf_turno_atiende === "N");
 
+					horariosNoAtencion.forEach((horario) => {
+						let fechaInicio = moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD");
+						let fechaFin = moment(horario.conf_turno_fecha_fin, "YYYY-MM-DD");
+						let horaInicio = moment(horario.conf_turno_hora_ini, "HH:mm:ss");
+						let horaFin = moment(horario.conf_turno_hora_fin, "HH:mm:ss");
 
-					// TODO: Quitar turnos vacíos duplicados
+						_.remove(turnosAll, (t) => {
+							if (typeof (t.turnos_id) === "undefined"
+								&& moment(t.turno_fecha, "YYYY-MM-DD").isBetween(fechaInicio, fechaFin, null, "[]")
+								&& moment(t.turno_hora, "HH:mm:ss").isBetween(horaInicio, horaFin, "minutes", "[]")
+								&& (t.profesional_id === horario.profesional_id
+									|| t.profesional_id === horario.conf_turno_efector_id)
+								&& t.servicio_id === horario.servicio_id) {
+								return true;
+							} else {
+								return false;
+							}
+						});
+					});
 
-					turnosAll.sort((a, b) => a.turnos_id - b.turnos_id);
+					turnosAll = _.sortBy(turnosAll, ["profesional_id", "turno_fecha", "turno_hora"]);
+
 					resolve(turnosAll);
 				});
 			});
@@ -601,6 +665,7 @@ class Endpoints {
 				data: turnos
 			});
 		}).catch((err) => {
+			logger.error(err);
 			res.json({
 				result: false,
 				err: err.message
