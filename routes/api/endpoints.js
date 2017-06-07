@@ -609,15 +609,20 @@ class Endpoints {
 
 				_.forEachCb(horariosAtencion, (horario, next) => {
 					let turnosWhere = {
-						turno_fecha: {
-							$between: [horario.conf_turno_fecha_ini, horario.conf_turno_fecha_fin]
-						},
 						turno_hora: {
 							$between: [horario.conf_turno_hora_ini, horario.conf_turno_hora_fin]
 						},
 						servicio_id: horario.servicio_id,
 						profesional_id: horario.profesional_id || horario.conf_turno_efector_id
 					};
+
+					if (req.queryWhere.agenda_fecha) {
+						turnosWhere.turno_fecha = req.queryWhere.agenda_fecha;
+					} else {
+						turnosWhere.turno_fecha = {
+							$between: [horario.conf_turno_fecha_ini, horario.conf_turno_fecha_fin]
+						};
+					}
 
 					if (horario.plan_os_id) {
 						turnosWhere.plan_os_id = horario.plan_os_id;
@@ -627,10 +632,15 @@ class Endpoints {
 						where: turnosWhere
 					}).then((turnos) => {
 						// Agregar turnos vacíos
-						let turnosVacios = [];
 						let fechaInicio = moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD");
 						let fechaActual = moment.max(moment(), moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD"));
 						let fechaFin = moment(horario.conf_turno_fecha_fin, "YYYY-MM-DD");
+
+						if (req.queryWhere.agenda_fecha) {
+							fechaInicio = moment(req.queryWhere.agenda_fecha, "YYYY-MM-DD");
+							fechaActual = moment(req.queryWhere.agenda_fecha, "YYYY-MM-DD");
+							fechaFin = moment(req.queryWhere.agenda_fecha, "YYYY-MM-DD");
+						}
 
 						while (fechaActual <= fechaFin) {
 							let horaInicio = moment(horario.conf_turno_hora_ini, "HH:mm:ss");
@@ -693,6 +703,11 @@ class Endpoints {
 						let fechaFin = moment(horario.conf_turno_fecha_fin, "YYYY-MM-DD");
 						let horaInicio = moment(horario.conf_turno_hora_ini, "HH:mm:ss");
 						let horaFin = moment(horario.conf_turno_hora_fin, "HH:mm:ss");
+
+						if (req.queryWhere.agenda_fecha) {
+							fechaInicio = moment(req.queryWhere.agenda_fecha, "YYYY-MM-DD");
+							fechaFin = moment(req.queryWhere.agenda_fecha, "YYYY-MM-DD");
+						}
 
 						_.remove(turnosAll, (t) => {
 							if (typeof (t.turnos_id) === "undefined"
