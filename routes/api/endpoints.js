@@ -569,14 +569,16 @@ class Endpoints {
 			.join(ServiciosProfesionales, ServiciosProfesionales.servicio_profesional_id)
 			.join(PlanesObraSocial, ConfTurnosObraSocial.obra_social_id, PlanesObraSocial.obra_social_id);
 
-		req.queryWhere.conf_turnos_atiende = "S";
+		req.queryWhere.conf_turno_atiende = "S";
 
 		ConfiguracionTurnosProf.find({
 			where: req.queryWhere,
 			limit: 0
 		}).then((horarios) => {
 			horariosAtencion = horarios;
-			req.queryWhere.conf_turnos_atiende = "N";
+
+			req.queryWhere.conf_turno_atiende = "N";
+
 			if (req.queryWhere.plan_os_id) {
 				delete req.queryWhere.plan_os_id;
 			}
