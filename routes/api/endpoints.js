@@ -700,7 +700,10 @@ class Endpoints {
 		}).then((turnos) => {
 			res.json({
 				result: true,
-				data: turnos
+				data: {
+					columns: Turnos.columns,
+					rows: turnos
+				}
 			});
 		}).catch((err) => {
 			logger.error(err);
