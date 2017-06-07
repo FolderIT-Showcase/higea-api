@@ -554,9 +554,19 @@ class Endpoints {
 		}
 
 		if (req.queryWhere.agenda_fecha) {
+			let diaSemana = moment(req.queryWhere.agenda_fecha).day() + 1;
+
 			req.queryWhere.conf_turno_fecha_fin = {
-				"$inbetween": ["conf_turno_fecha_fin", req.queryWhere.agenda_fecha]
+				value: req.queryWhere.agenda_fecha,
+				operator: ">="
 			};
+
+			req.queryWhere.conf_turno_fecha_ini = {
+				value: req.queryWhere.agenda_fecha,
+				operator: "<="
+			};
+
+			req.queryWhere.conf_turno_dia_atencion = diaSemana;
 		}
 
 		var Turnos = SQLAnywhere.table(code, "Turnos");
@@ -581,6 +591,10 @@ class Endpoints {
 
 			if (req.queryWhere.plan_os_id) {
 				delete req.queryWhere.plan_os_id;
+			}
+
+			if (req.queryWhere.conf_turno_dia_atencion) {
+				delete req.queryWhere.conf_turno_dia_atencion;
 			}
 
 			return ConfiguracionTurnosProf.find({
