@@ -476,6 +476,10 @@ class Table {
                 type = this.schema[column].type.toLowerCase();
             }
 
+            if (obj.operator) {
+                operator = " " + obj.operator + " ";
+            }
+
             // Operador BETWEEN
             if (obj.hasOwnProperty("$between") && obj["$between"].length == 2) {
                 let valIzq, valDer;
@@ -507,7 +511,6 @@ class Table {
                     value = "'" + value + "'";
                 }
             }
-
         } else {
             if (!this.schema[column]) {
                 return "";
