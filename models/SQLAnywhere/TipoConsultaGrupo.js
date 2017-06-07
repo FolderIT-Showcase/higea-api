@@ -8,7 +8,7 @@ var schema = {
         type: "String",
         label: "Nombre"
     },
-    tcg_abreviatura: {
+    tcg_abrev: {
         type: "String",
         label: "Abreviatura"
     }
