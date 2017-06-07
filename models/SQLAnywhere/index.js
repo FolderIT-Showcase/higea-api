@@ -65,7 +65,7 @@ class Table {
     }
 
     _buildQuery(options = {}) {
-        let limit = "TOP 100";
+        let limit = ""; //"TOP 100";
         let columns = _.map(this.schema, e => e.schema).join(", ");
         let where = "";
         let order = " ORDER BY 1 ";
