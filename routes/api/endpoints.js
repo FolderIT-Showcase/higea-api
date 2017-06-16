@@ -665,7 +665,7 @@ class Endpoints {
 					}).then((turnos) => {
 						// Agregar turnos vacíos
 						let fechaInicio = moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD");
-						let fechaActual = moment.max(moment(), moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD"));
+						let fechaActual = moment.max(moment(), moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD")).clone();
 						let fechaFin = moment(horario.conf_turno_fecha_fin, "YYYY-MM-DD");
 
 						if (req.queryWhere.agenda_fecha) {
