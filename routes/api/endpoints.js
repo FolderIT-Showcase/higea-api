@@ -31,6 +31,21 @@ var schemas = {
 				properties: SQLAnywhere.validate(["Turnos", "Especialidades"], true)
 			}
 		},
+		"/api/:code/profesionales": {
+			params: {
+				type: 'object',
+				properties: {
+					code: {
+						type: 'string',
+						required: true
+					}
+				}
+			},
+			query: {
+				type: 'object',
+				properties: SQLAnywhere.validate(["Profesionales", "ServiciosProfesionales"], true)
+			}
+		},
 		"/api/:code/agendas": {
 			params: {
 				type: 'object',
@@ -401,7 +416,7 @@ class Endpoints {
 		app.use('/api/:code/*', permission);
 
 		//Verificacion de token o username+password
-		app.get('/api/:code/profesionales', validate, queryBuilder, this.getTable("Profesionales").bind(this));
+		app.get('/api/:code/profesionales', validate, queryBuilder, this.getProfesionales.bind(this));
 
 		app.get('/api/:code/especialidades', validate, queryBuilder, this.getTable("Especialidades").bind(this));
 
@@ -534,6 +549,38 @@ class Endpoints {
 				});
 			});
 		}
+	}
+
+	getProfesionales(req, res) {
+		var code = req.params.code;
+
+		var Profesionales = SQLAnywhere.table(code, "Profesionales");
+		var ServiciosProfesionales = SQLAnywhere.table(code, "ServiciosProfesionales");
+
+		Profesionales.join(ServiciosProfesionales, ServiciosProfesionales.profesional_id);
+
+		logger.debug(req.queryWhere);
+
+		Profesionales.find({
+			where: req.queryWhere
+		}).then((profesionales) => {
+			res.json({
+				result: true,
+				data: {
+					columns: Profesionales.columns,
+					rows: profesionales
+				}
+			});
+		}).catch((err) => {
+			if (err.status) {
+				res.status(err.status);
+			}
+
+			res.json({
+				result: false,
+				err: err.message
+			});
+		});
 	}
 
 	getTurnos(req, res) {
