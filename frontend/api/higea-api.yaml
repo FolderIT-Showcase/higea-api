@@ -250,7 +250,7 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
-  '/{cliente}/calendarios':
+  '/{cliente}/calendario':
     get:
       tags:
         - Profesionales
@@ -769,7 +769,9 @@ responses:
                 rows:
                   type: array
                   items:
-                    $ref: '#/definitions/Profesional'
+                    allOf:
+                      - $ref: '#/definitions/ServicioProfesional'
+                      - $ref: '#/definitions/Profesional'
   Calendarios:
     description: Consulta exitosa
     schema:
@@ -1613,3 +1615,15 @@ definitions:
       localidad_codigo_postal:
         type: string
         description: "Código postal de la localidad, idealmente en formato CPA"
+  ServicioProfesional:
+    type: object
+    properties:
+      servicio_profesional_id:
+        type: number
+        description: "ID único"
+      profesional_id:
+        type: number
+        description: "ID del profesional"
+      servicio_id:
+        type: number
+        description: "ID del servicio"
