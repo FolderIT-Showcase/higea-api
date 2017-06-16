@@ -828,8 +828,6 @@ class Endpoints {
 					while (fechaIni <= fechaFin) {
 						let diaSemana = fechaIni.day() + 1;
 
-						logger.info(diaSemana, calendario.conf_turno_dia_atencion, fechaIni.format("YYYY-MM-DD"));
-
 						if (calendario.conf_turno_dia_atencion === diaSemana) {
 							dias.push({
 								calendario_fecha: fechaIni.format("YYYY-MM-DD"),
@@ -862,7 +860,7 @@ class Endpoints {
 						});
 
 						if (i >= 0) {
-							calendariosAll[i].calednario_ = "N";
+							calendariosAll[i].calendario_atiende = "N";
 						} else {
 							calendariosAll.push({
 								calendario_fecha: fechaIni.format("YYYY-MM-DD"),
