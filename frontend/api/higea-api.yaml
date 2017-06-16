@@ -779,16 +779,9 @@ responses:
         - type: object
           properties:
             data:
-              type: object
-              properties:
-                columns:
-                  type: array
-                  items:
-                    $ref: '#/definitions/Column'
-                rows:
-                  type: array
-                  items:
-                    $ref: '#/definitions/Calendario'
+              type: array
+              items:
+                $ref: '#/definitions/Calendario'
   Especialidades:
     description: Consulta exitosa
     schema:
