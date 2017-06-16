@@ -51,6 +51,36 @@ var schemas = {
 					}
 				}
 			}
+		},
+		"/api/:code/calendario": {
+			params: {
+				type: 'object',
+				properties: {
+					code: {
+						type: 'string',
+						required: true
+					}
+				}
+			},
+			query: {
+				type: 'object',
+				properties: SQLAnywhere.validate(["ConfiguracionTurnosProf", "ServiciosProfesionales"], true),
+				additionalProperties: {
+					servicio_id: {
+						type: "string",
+						required: true
+					},
+					profesional_id: {
+						type: "string",
+						required: true
+					},
+					calendario_fecha: {
+						type: "string",
+						required: true,
+						isDate: true
+					}
+				}
+			}
 		}
 	},
 	post: {
@@ -407,6 +437,8 @@ class Endpoints {
 
 		app.get('/api/:code/agendas', validate, queryBuilder, this.getAgenda.bind(this));
 
+		app.get('/api/:code/calendario', validate, queryBuilder, this.getCalendario.bind(this));
+
 		app.post('/api/:code/turnos', validate, queryBuilder, this.newTurno.bind(this));
 
 		app.post('/api/:code/pacientes', validate, queryBuilder, this.newPaciente.bind(this));
@@ -738,6 +770,122 @@ class Endpoints {
 			});
 		}).catch((err) => {
 			logger.error(err);
+			res.json({
+				result: false,
+				err: err.message
+			});
+		});
+	}
+
+	getCalendario(req, res) {
+		var code = req.params.code;
+		var calendarioIni, calendarioFin;
+		let calendariosAll = [];
+
+		var ConfiguracionTurnosProf = SQLAnywhere.table(code, "ConfiguracionTurnosProf");
+		var ServiciosProfesionales = SQLAnywhere.table(code, "ServiciosProfesionales");
+
+		ConfiguracionTurnosProf.join(ServiciosProfesionales, ServiciosProfesionales.servicio_profesional_id);
+
+		if (req.queryWhere.profesional_id) {
+			let profesional_id = req.queryWhere.profesional_id;
+			delete req.queryWhere.profesional_id;
+			req.queryWhere["$or"] = [{
+				profesional_id: profesional_id
+			}, {
+				conf_turno_efector_id: profesional_id
+			}];
+		}
+
+		if (req.queryWhere.calendario_fecha) {
+			let calendario_fecha = moment(req.queryWhere).format("YYYYMM");
+			calendarioIni = moment(req.queryWhere).startOf("month");
+			calendarioFin = moment(req.queryWhere).endOf("month");
+
+			req.queryWhere.conf_turno_fecha_ini = {
+				"$inbetween": [
+					calendario_fecha,
+					"(Year(dba.configuracion_turnos_prof.conf_turno_fecha_ini)*100)+Month(dba.configuracion_turnos_prof.conf_turno_fecha_ini)",
+					"(Year(dba.configuracion_turnos_prof.conf_turno_fecha_fin)*100)+Month(dba.configuracion_turnos_prof.conf_turno_fecha_fin)"],
+				type: "number"
+			};
+		}
+
+		ConfiguracionTurnosProf.find({
+			where: req.queryWhere
+		}).then((calendarios) => {
+			// Establecer dias de atencion
+			return new Promise((resolve, reject) => {
+				_.forEachCb(calendarios, (calendario, next) => {
+					if (calendario.conf_turno_atiende !== "S") {
+						return next();
+					}
+
+					let fechaIni = moment.max(moment(calendario.conf_turno_fecha_ini), calendarioIni).clone();
+					let fechaFin = moment.min(moment(calendario.conf_turno_fecha_fin), calendarioFin).clone();
+					let dias = [];
+
+					while (fechaIni <= fechaFin) {
+						let diaSemana = fechaIni.day() + 1;
+
+						logger.info(diaSemana, calendario.conf_turno_dia_atencion, fechaIni.format("YYYY-MM-DD"));
+
+						if (calendario.conf_turno_dia_atencion === diaSemana) {
+							dias.push({
+								calendario_fecha: fechaIni.format("YYYY-MM-DD"),
+								calendario_atiende: "S"
+							});
+						}
+
+						fechaIni.add(1, "days");
+					}
+
+					calendariosAll = _.unionWith(calendariosAll, dias, _.isEqual);
+
+					next();
+				}, resolve);
+			});
+		}).then((calendarios) => {
+			// Establecer dias de no atencion
+			return new Promise((resolve, reject) => {
+				_.forEachCb(calendarios, (calendario, next) => {
+					if (calendario.conf_turno_atiende !== "N") {
+						return next();
+					}
+
+					let fechaIni = moment.max(moment(calendario.conf_turno_fecha_ini), calendarioIni).clone();
+					let fechaFin = moment.min(moment(calendario.conf_turno_fecha_fin), calendarioFin).clone();
+
+					while (fechaIni <= fechaFin) {
+						let i = _.findIndex(calendariosAll, (o) => {
+							return o.calendario_fecha === fechaIni.format("YYYY-MM-DD");
+						});
+
+						if (i >= 0) {
+							calendariosAll[i].calednario_ = "N";
+						} else {
+							calendariosAll.push({
+								calendario_fecha: fechaIni.format("YYYY-MM-DD"),
+								calendario_atiende: "N"
+							});
+						}
+
+						fechaIni.add(1, "days");
+					}
+
+					next();
+				}, (calendarios) => {
+					calendariosAll = _.sortBy(calendariosAll, ["calendario_fecha"]);
+
+					resolve(calendariosAll);
+				});
+			});
+		}).then((calendarios) => {
+			res.json({
+				result: true,
+				data: calendarios
+			});
+		}).catch((err) => {
 			res.json({
 				result: false,
 				err: err.message
