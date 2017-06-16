@@ -830,6 +830,8 @@ class Endpoints {
 
 						if (calendario.conf_turno_dia_atencion === diaSemana) {
 							dias.push({
+								profesional_id: calendario.profesional_id || calendario.conf_turno_efector_id,
+								servicio_id: calendario.servicio_id,
 								calendario_fecha: fechaIni.format("YYYY-MM-DD"),
 								calendario_atiende: "S"
 							});
@@ -863,6 +865,8 @@ class Endpoints {
 							calendariosAll[i].calendario_atiende = "N";
 						} else {
 							calendariosAll.push({
+								profesional_id: calendario.profesional_id || calendario.conf_turno_efector_id,
+								servicio_id: calendario.servicio_id,
 								calendario_fecha: fechaIni.format("YYYY-MM-DD"),
 								calendario_atiende: "N"
 							});
