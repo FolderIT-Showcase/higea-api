@@ -861,9 +861,9 @@ class Endpoints {
 		}
 
 		if (req.queryWhere.calendario_fecha) {
-			let calendario_fecha = moment(req.queryWhere).format("YYYYMM");
-			calendarioIni = moment(req.queryWhere).startOf("month");
-			calendarioFin = moment(req.queryWhere).endOf("month");
+			let calendario_fecha = moment(req.queryWhere.calendario_fecha).format("YYYYMM");
+			calendarioIni = moment(req.queryWhere.calendario_fecha).startOf("month");
+			calendarioFin = moment(req.queryWhere.calendario_fecha).endOf("month");
 
 			req.queryWhere.conf_turno_fecha_ini = {
 				"$inbetween": [
