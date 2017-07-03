@@ -263,6 +263,13 @@ class Table {
                 }
             });
 
+            // Remover campos que no existan en el esquema
+            Object.keys(row).forEach(c => {
+                if (!this.schema.hasOwnProperty(c)) {
+                    delete row[c];
+                }
+            });
+
             Object.keys(row).join(", ");
 
             columns = Object.keys(row).join(", ");

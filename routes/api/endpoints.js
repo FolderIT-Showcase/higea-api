@@ -16,36 +16,36 @@ var _ = require('../../helpers/lodash'),
 
 var schemas = {
 	get: {
-        "/api/:code/turnos": {
-            params: {
-                type: 'object',
-                properties: {
-                    code: {
-                        type: 'string',
-                        required: true
-                    }
-                }
-            },
-            query: {
-                type: 'object',
-                properties: SQLAnywhere.validate(["Turnos", "Especialidades"], true)
-            }
-        },
-        "/api/:code/pacientes": {
-            params: {
-                type: 'object',
-                properties: {
-                    code: {
-                        type: 'string',
-                        required: true
-                    }
-                }
-            },
-            query: {
-                type: 'object',
-                properties: {}
-            }
-        },
+		"/api/:code/turnos": {
+			params: {
+				type: 'object',
+				properties: {
+					code: {
+						type: 'string',
+						required: true
+					}
+				}
+			},
+			query: {
+				type: 'object',
+				properties: SQLAnywhere.validate(["Turnos", "Especialidades"], true)
+			}
+		},
+		"/api/:code/pacientes": {
+			params: {
+				type: 'object',
+				properties: {
+					code: {
+						type: 'string',
+						required: true
+					}
+				}
+			},
+			query: {
+				type: 'object',
+				properties: {}
+			}
+		},
 		"/api/:code/profesionales": {
 			params: {
 				type: 'object',
@@ -542,8 +542,6 @@ class Endpoints {
 			var code = req.params.code;
 
 			var Table = SQLAnywhere.table(code, tableName);
-			console.log(req.query)
-			console.log(req.queryWhere)
 			Table.find({
 				where: req.queryWhere
 			}).then((rows) => {
