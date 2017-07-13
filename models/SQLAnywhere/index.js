@@ -65,6 +65,7 @@ class Table {
     }
 
     _buildQuery(options = {}) {
+        let distinct = "";
         let limit = ""; //"TOP 100";
         let columns = _.map(this.schema, e => e.schema).join(", ");
         let where = "";
@@ -77,6 +78,10 @@ class Table {
             } else {
                 limit = "TOP " + options.limit;
             }
+        }
+
+        if (typeof (options.distinct) !== "undefined") {
+            distinct = " DISTINCT ";
         }
 
         if (!_.isEmpty(options.where)) {
@@ -152,6 +157,7 @@ class Table {
         }
 
         let query = " SELECT ";
+        query += " " + distinct + " ";
         query += " " + limit + " ";
         query += " " + columns + " \n\n";
         query += " " + from + " \n\n";
@@ -230,12 +236,12 @@ class Table {
 
         // Anexar esquemas
         if (mergeColumns === true) {
-        let s = _.merge({}, table.schema);
-        _.merge(s, this.schema);
-        this.schema = s;
+            let s = _.merge({}, table.schema);
+            _.merge(s, this.schema);
+            this.schema = s;
 
-        // Reconstruir columnas
-        this.rebuildColumns();
+            // Reconstruir columnas
+            this.rebuildColumns();
         }
 
         return this;
