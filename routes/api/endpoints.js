@@ -433,6 +433,8 @@ class Endpoints {
 		//Verificacion de token o username+password
 		app.get('/api/:code/profesionales', validate, queryBuilder, this.getProfesionales.bind(this));
 
+		app.get('/api/:code/profesionalesDisponibles', validate, queryBuilder, this.getProfesionalesDisponibles.bind(this));
+
 		app.get('/api/:code/especialidades', validate, queryBuilder, this.getTable("Especialidades").bind(this));
 
 		app.get('/api/:code/turnos', validate, queryBuilder, this.getTurnos.bind(this));
@@ -573,9 +575,43 @@ class Endpoints {
 
 		Profesionales.join(ServiciosProfesionales, ServiciosProfesionales.profesional_id);
 
-		logger.debug(req.queryWhere);
+		Profesionales.find({
+			where: req.queryWhere
+		}).then((profesionales) => {
+			res.json({
+				result: true,
+				data: {
+					columns: Profesionales.columns,
+					rows: profesionales
+				}
+			});
+		}).catch((err) => {
+			if (err.status) {
+				res.status(err.status);
+			}
+
+			res.json({
+				result: false,
+				err: err.message
+			});
+		});
+	}
+
+	getProfesionalesDisponibles(req, res) {
+		var code = req.params.code;
+
+		var Profesionales = SQLAnywhere.table(code, "Profesionales");
+		var ServiciosProfesionales = SQLAnywhere.table(code, "ServiciosProfesionales");
+		var ConfiguracionTurnosProf = SQLAnywhere.table(code, "ConfiguracionTurnosProf");
+
+		Profesionales.join(ServiciosProfesionales, ServiciosProfesionales.profesional_id, undefined, "INNER")
+			.join(ConfiguracionTurnosProf, ServiciosProfesionales.servicio_profesional_id, ConfiguracionTurnosProf.servicio_profesional_id, "INNER", false);
+
+		// Mostrar sólo profesionales habilitados (para los casos de desactivación de profesionales)
+		req.queryWhere.profesional_clinica = "S";
 
 		Profesionales.find({
+			distinct: true,
 			where: req.queryWhere
 		}).then((profesionales) => {
 			res.json({
