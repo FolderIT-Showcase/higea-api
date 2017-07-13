@@ -224,17 +224,19 @@ class Table {
         });
     }
 
-    join(table, leftCol, rightCol = undefined, type = "OUTER") {
+    join(table, leftCol, rightCol = undefined, type = "LEFT OUTER", mergeColumns = true) {
         rightCol = rightCol || { schema: this.name + "." + leftCol.name };
-        this.joins += " LEFT " + type + " JOIN " + table.name + " ON " + leftCol.schema + " = " + rightCol.schema + " " + table.joins;
+        this.joins += " " + type + " JOIN " + table.name + " ON " + leftCol.schema + " = " + rightCol.schema + " " + table.joins;
 
         // Anexar esquemas
+        if (mergeColumns === true) {
         let s = _.merge({}, table.schema);
         _.merge(s, this.schema);
         this.schema = s;
 
         // Reconstruir columnas
         this.rebuildColumns();
+        }
 
         return this;
     }
