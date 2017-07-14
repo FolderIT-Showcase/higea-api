@@ -3,7 +3,7 @@ var colors = require('colors');
 module.exports = {
     environment: process.env.NODE_ENV || 'production',
     databases: {
-        production: 'mongodb://172.10.10.200:27017/higea-api',
+        production: 'mongodb://higea-api:LovelyConsistNameCompletely@104.237.155.175:27017/higea?authSource=user-data',
         development: 'mongodb://172.10.10.200:27017/higea-api'//'mongodb://nodefe:290rh06p@104.237.155.78:27017/nodefe?authSource=user-data'
     },
     tokenSecret: "BeltGasPrepareFence",

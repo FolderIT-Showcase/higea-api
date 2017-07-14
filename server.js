@@ -53,8 +53,8 @@ db.once('open', function () {
         res.sendFile(__dirname + '/public/index.html')
     });
 
-    app.listen(process.env.PORT || 80, function () {
-        logger.log('Higea API listening on port', (process.env.PORT || 80));
+    app.listen(process.env.PORT || 3000, function () {
+        logger.log('Higea API listening on port', (process.env.PORT || 3000));
 
         // Inicializacion de modelos de la base de datos
         require('./models');
