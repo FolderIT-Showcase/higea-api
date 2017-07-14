@@ -43,7 +43,7 @@ db.once('open', function () {
 
     // Catch all (404)
     app.get('/api/*', (req, res) => {
-        res.status(404).json({
+        res.status(404).send({
             result: false,
             err: "Ruta no encontrada"
         });
