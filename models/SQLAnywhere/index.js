@@ -362,7 +362,9 @@ class Table {
     disconnectDatabase(db) {
         return new Promise((resolve, reject) => {
             this.getDatabase().then(() => {
-                db.disconnect();
+                if (db) {
+                    db.disconnect();
+                }
                 resolve();
             }).catch(reject);
         });
