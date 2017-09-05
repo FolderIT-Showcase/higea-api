@@ -29,7 +29,10 @@ db.once('open', function () {
 
     // Control de sobrecarga
     app.use(function (req, res, next) {
-        if (toobusy()) res.status(503).send("El servicio se encuentra sobrecargado. Por favor, intente nuevamente.");
+        if (toobusy()) res.status(503).json({
+            result: false,
+            err: "El servicio se encuentra sobrecargado. Por favor, intente nuevamente."
+        });
         else next();
     });
 
