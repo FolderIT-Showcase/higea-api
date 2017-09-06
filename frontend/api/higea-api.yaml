@@ -815,7 +815,41 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
+  '/{cliente}/sincronizarParametros':
+    get:
+      tags:
+        - Configuración
+      summary: Obtener los parámetros web del cliente y almacenarlos en la API
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener todos los parámetros web a sincronizar.
+      operationId: getSincronizarParametros
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/Response'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
 responses:
+  Response:
+    description: Consulta exitosa
+    schema:
+      title: "ParametrosWeb"
+      allOf:
+        - $ref: '#/definitions/Response'
   Login:
     description: Login exitoso
     schema:
