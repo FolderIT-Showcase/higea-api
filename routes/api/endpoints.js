@@ -567,6 +567,44 @@ class Endpoints {
 		}
 	}
 
+	getSincronizarParametros(req, res) {
+		var code = req.params.code;
+
+		var ParametrosWeb = SQLAnywhere.table(code, "ParametrosWeb");
+		var ClientParameters = mongoose.model('ClientParameters');
+		var parametrosWeb;
+
+		ParametrosWeb.find().then((parametrosWebFound) => {
+			parametrosWeb = parametrosWebFound;
+			return ClientParameters.findOne({
+				code: code
+			});
+		}).then((cParams) => {
+			if (!cParams) {
+				cParams = new ClientParameters({
+					code: code
+				});
+			}
+
+			cParams.parameters = parametrosWeb;
+
+			return cParams.save();
+		}).then((cParams) => {
+			res.json({
+				result: true
+			});
+		}).catch((err) => {
+			if (err.status) {
+				res.status(err.status);
+			}
+
+			res.json({
+				result: false,
+				err: err.message
+			});
+		});
+	}
+
 	getProfesionales(req, res) {
 		var code = req.params.code;
 
