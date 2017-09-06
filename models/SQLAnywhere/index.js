@@ -29,6 +29,7 @@ class Table {
         this.name = "dba." + _.snakeCase(tableName);
         this.joins = "";
         this.code = options.code;
+        this.tableName = tableName;
 
         let id = {};
 
@@ -193,12 +194,51 @@ class Table {
         return rows;
     }
 
-    find(options = {}) {
-        let query = this._buildQuery(options);
-        let rowsParsed, db;
-
+    _processFilters() {
         return new Promise((resolve, reject) => {
-            this.connectDatabase().then((newDb) => {
+            const ClientParameters = mongoose.model("ClientParameters");
+
+            ClientParameters.findOne({
+                code: this.code
+            }).then((clientParam) => {
+                const columnsFiltered = [];
+
+                //Si no hay parámetros cargados, evitar todas las validaciones de endpoints
+                if (!clientParam || !clientParam.parameters || !clientParam.parameters.length) {
+                    return resolve(columnsFiltered);
+                }
+
+                const paramPrefix = "WEB_API_FILTER_";
+                const params = _.filter(clientParam.parameters, (e) => {
+                    return _.startsWith(e.parweb_propiedad, paramPrefix + this.tableName.toUpperCase());
+                });
+
+                _.forEach(params, (e) => {
+                    if (e.parweb_valor === 'S') {
+                        const column = e.parweb_propiedad.substring(paramPrefix.length + this.tableName.length + 1);
+                        columnsFiltered.push(column.toLowerCase());
+                    }
+                });
+
+                resolve(columnsFiltered);
+            }).catch(reject);
+        });
+    }
+
+    find(options = {}) {
+        return new Promise((resolve, reject) => {
+            let query = "";
+            let rowsParsed, db;
+
+            this._processFilters().then((columnsFiltered) => {
+                _.forEach(columnsFiltered, (e) => {
+                    options.where[e] = 'S';
+                });
+
+                query = this._buildQuery(options);
+
+                return this.connectDatabase();
+            }).then((newDb) => {
                 db = newDb;
                 return this.queryDatabase(query, db);
             }).then((rows) => {
