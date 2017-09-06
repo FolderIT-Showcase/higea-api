@@ -12,7 +12,18 @@ info:
 host: higea.folderit.net
 basePath: /api
 schemes:
-  - http
+  - https
+tags:
+  - name: Login
+    description: Autorización y obtención de tokens
+  - name: Configuración
+    description: Endpoints para administración de parámetros de configuración
+  - name: Profesionales
+    description: Endpoints para administración de profesionales
+  - name: Pacientes
+    description: Endpoints para administración de pacientes
+  - name: Turnos
+    description: Endpoints para administración de turnos
 paths:
   '/login':
     post:
@@ -776,6 +787,34 @@ paths:
           $ref: '#/responses/Forbidden'
         '500':
           $ref: '#/responses/InternalError'
+  '/{cliente}/parametrosWeb':
+    get:
+      tags:
+        - Configuración
+      summary: Obtener los parámetros web del cliente
+      description: >-
+        Se debe especificar el código único del cliente del que se quieren
+        obtener todos los parámetros web.
+      operationId: getParametrosWeb
+      produces:
+        - application/json
+      parameters:
+        - name: cliente
+          in: path
+          description: Código único del cliente
+          required: true
+          type: string
+      responses:
+        '200':
+          $ref: '#/responses/ParametrosWeb'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '500':
+          $ref: '#/responses/InternalError'
 responses:
   Login:
     description: Login exitoso
@@ -1128,6 +1167,25 @@ responses:
                   type: array
                   items:
                     $ref: '#/definitions/Localidad'
+  ParametrosWeb:
+    description: Consulta exitosa
+    schema:
+      title: "ParametrosWeb"
+      allOf:
+        - $ref: '#/definitions/Response'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                columns:
+                  type: array
+                  items:
+                    $ref: '#/definitions/Column'
+                rows:
+                  type: array
+                  items:
+                    $ref: '#/definitions/ParametroWeb'
   BadRequest:
     description: "Solicitud inválida"
     schema:
@@ -1664,3 +1722,21 @@ definitions:
       servicio_id:
         type: number
         description: "ID del servicio"
+  ParametroWeb:
+    type: object
+    properties:
+      parweb_id:
+        type: number
+        description: "ID único"
+      parweb_propiedad:
+        type: string
+        description: "Código identificatorio del parámetro"
+      parweb_valor:
+        type: string
+        description: "Valor del parámetro"
+      parweb_descripcion:
+        type: string
+        description: "Descripción"
+      parweb_tipo:
+        type: string
+        description: "Tipo del valor"
