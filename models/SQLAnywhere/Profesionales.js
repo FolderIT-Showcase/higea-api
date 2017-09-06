@@ -52,6 +52,12 @@ var schema = {
         label: "Género",
         enum: ["S", "N"],
         default: "N"
+    },
+    profesional_web: {
+        type: "String",
+        label: "Profesional Web",
+        enum: ["S", "N"],
+        default: "N"
     }
 };
 
