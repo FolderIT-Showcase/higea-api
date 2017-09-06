@@ -175,25 +175,34 @@ var authenticate = function (req, res, next) {
 	}
 }
 
-var administrative = function (req, res, next) {
-	var username = req.decoded ? req.decoded._doc.username : "";
-	var Users = mongoose.model('Users');
+var endpointEnabled = function (req, res, next) {
+	var path = req.route.path.split("/").splice(-1)[0].toUpperCase();
+	var method = req.method.toUpperCase();
+	var code = req.params.code;
 
-	Users.findOne({
-		username: username,
-		admin: true
-	}).then((user) => {
-		if (!user) {
-			return res.status(403).send({
+	var ClientParameters = mongoose.model('ClientParameters');
+
+	//Obtener los parámetros del Higea Desktop del cliente
+	ClientParameters.findOne({
+		code: code
+	}).then((clientParam) => {
+		//Si no hay parámetros cargados, evitar todas las validaciones de endpoints
+		if (!clientParam || !clientParam.parameters || !clientParam.parameters.length) {
+			return next();
+		}
+
+		const param = _.find(clientParam.parameters, ['parweb_propiedad', 'WEB_API_ENDPOINT_' + method + '_' + path]);
+		if (param && param.parweb_valor === 'N') {
+			res.status(404).json({
 				result: false,
-				err: "El usuario no tiene permisos suficientes."
+				err: "Ruta no encontrada"
 			});
 		} else {
 			next();
 		}
-	}, (err) => {
-		return res.status(500).send({
-			result: false,
+	}).catch((err) => {
+		res.status(500).json({
+			status: false,
 			err: err.message
 		});
 	});
@@ -390,6 +399,36 @@ var queryBuilder = function (req, res, next) {
 	next();
 }
 
+var administrative = function (req, res, next) {
+	var username = req.decoded ? req.decoded._doc.username : "";
+	var Users = mongoose.model('Users');
+
+	Users.findOne({
+		username: username,
+		admin: true
+	}).then((user) => {
+		if (!user) {
+			return res.status(403).json({
+				result: false,
+				err: "El usuario no tiene permisos suficientes."
+			});
+		} else {
+			next();
+		}
+	}, (err) => {
+		return res.status(500).json({
+			result: false,
+			err: err.message
+		});
+	});
+}
+
+var clientMiddlewares = [
+	endpointEnabled,
+	validate,
+	queryBuilder
+];
+
 class Endpoints {
 	constructor(app) {
 		addSchemaProperties({
@@ -431,49 +470,53 @@ class Endpoints {
 		app.use('/api/:code/*', permission);
 
 		//Verificacion de token o username+password
-		app.get('/api/:code/profesionales', validate, queryBuilder, this.getProfesionales.bind(this));
+		app.get('/api/:code/sincronizarParametros', this.getSincronizarParametros.bind(this));
 
-		app.get('/api/:code/profesionalesDisponibles', validate, queryBuilder, this.getProfesionalesDisponibles.bind(this));
+		app.get('/api/:code/profesionales', clientMiddlewares, this.getProfesionales.bind(this));
 
-		app.get('/api/:code/especialidades', validate, queryBuilder, this.getTable("Especialidades").bind(this));
+		app.get('/api/:code/profesionalesDisponibles', clientMiddlewares, this.getProfesionalesDisponibles.bind(this));
 
-		app.get('/api/:code/turnos', validate, queryBuilder, this.getTurnos.bind(this));
+		app.get('/api/:code/especialidades', clientMiddlewares, this.getTable("Especialidades").bind(this));
 
-		app.get('/api/:code/servicios', validate, queryBuilder, this.getTable("Servicios").bind(this));
+		app.get('/api/:code/turnos', clientMiddlewares, this.getTurnos.bind(this));
 
-		app.get('/api/:code/obrasSociales', validate, queryBuilder, this.getTable("ObrasSociales").bind(this));
+		app.get('/api/:code/servicios', clientMiddlewares, this.getTable("Servicios").bind(this));
 
-		app.get('/api/:code/planesObraSocial', validate, queryBuilder, this.getTable("PlanesObraSocial").bind(this));
+		app.get('/api/:code/obrasSociales', clientMiddlewares, this.getTable("ObrasSociales").bind(this));
 
-		app.get('/api/:code/pacientes', validate, queryBuilder, this.getTable("Pacientes").bind(this));
+		app.get('/api/:code/planesObraSocial', clientMiddlewares, this.getTable("PlanesObraSocial").bind(this));
 
-		app.get('/api/:code/estadoTurnos', validate, queryBuilder, this.getTable("EstadoTurnos").bind(this));
+		app.get('/api/:code/pacientes', clientMiddlewares, this.getTable("Pacientes").bind(this));
 
-		app.get('/api/:code/tipoOrigenTurno', validate, queryBuilder, this.getTable("TipoOrigenTurno").bind(this));
+		app.get('/api/:code/estadoTurnos', clientMiddlewares, this.getTable("EstadoTurnos").bind(this));
 
-		// app.get('/api/:code/tipoTurnoFac', validate, queryBuilder, this.getTable("TipoTurnoFac").bind(this));
+		app.get('/api/:code/tipoOrigenTurno', clientMiddlewares, this.getTable("TipoOrigenTurno").bind(this));
 
-		app.get('/api/:code/tipoTurnos', validate, queryBuilder, this.getTable("TipoConsultaGrupo").bind(this));
+		// app.get('/api/:code/tipoTurnoFac', clientMiddlewares, this.getTable("TipoTurnoFac").bind(this));
 
-		app.get('/api/:code/motivoTurnos', validate, queryBuilder, this.getTable("TipoEpisodioConsulta").bind(this));
+		app.get('/api/:code/tipoTurnos', clientMiddlewares, this.getTable("TipoConsultaGrupo").bind(this));
 
-		app.get('/api/:code/estadoCiviles', validate, queryBuilder, this.getTable("EstadoCiviles").bind(this));
+		app.get('/api/:code/motivoTurnos', clientMiddlewares, this.getTable("TipoEpisodioConsulta").bind(this));
 
-		app.get('/api/:code/tipoDocumentos', validate, queryBuilder, this.getTable("TipoDocumentos").bind(this));
+		app.get('/api/:code/estadoCiviles', clientMiddlewares, this.getTable("EstadoCiviles").bind(this));
 
-		app.get('/api/:code/paises', validate, queryBuilder, this.getTable("Paises").bind(this));
+		app.get('/api/:code/tipoDocumentos', clientMiddlewares, this.getTable("TipoDocumentos").bind(this));
 
-		app.get('/api/:code/provincias', validate, queryBuilder, this.getTable("Provincias").bind(this));
+		app.get('/api/:code/paises', clientMiddlewares, this.getTable("Paises").bind(this));
 
-		app.get('/api/:code/localidades', validate, queryBuilder, this.getTable("Localidades").bind(this));
+		app.get('/api/:code/provincias', clientMiddlewares, this.getTable("Provincias").bind(this));
 
-		app.get('/api/:code/agendas', validate, queryBuilder, this.getAgenda.bind(this));
+		app.get('/api/:code/localidades', clientMiddlewares, this.getTable("Localidades").bind(this));
 
-		app.get('/api/:code/calendario', validate, queryBuilder, this.getCalendario.bind(this));
+		app.get('/api/:code/parametrosWeb', clientMiddlewares, this.getTable("ParametrosWeb").bind(this));
 
-		app.post('/api/:code/turnos', validate, queryBuilder, this.newTurno.bind(this));
+		app.get('/api/:code/agendas', clientMiddlewares, this.getAgenda.bind(this));
 
-		app.post('/api/:code/pacientes', validate, queryBuilder, this.newPaciente.bind(this));
+		app.get('/api/:code/calendario', clientMiddlewares, this.getCalendario.bind(this));
+
+		app.post('/api/:code/turnos', clientMiddlewares, this.newTurno.bind(this));
+
+		app.post('/api/:code/pacientes', clientMiddlewares, this.newPaciente.bind(this));
 
 		app.use(this.jsonSchemaValidation);
 
