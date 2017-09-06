@@ -1,17 +1,22 @@
 {
   "apps": [
     {
-      "name": "higea",
+      "name": "higea-api",
       "script": "server.js",
+      "merge_logs": true,
       "watch": true,
       "ignore_watch": [
-        "\.git",
-        "bower_components",
+        "ecosystem.json",
+        ".git",
         "node_modules",
+        "bower_components",
+        "static",
         "frontend",
         "public"
       ],
-      "merge_logs": true,
+      "watch_options": {
+        "followSymlinks": false
+      },
       "env": {
         "NODE_ENV": "development",
         "PORT": "80"
@@ -21,5 +26,18 @@
         "PORT": "3002"
       }
     }
-  ]
+  ],
+  "deploy": {
+    "production": {
+      "key": "/c/Users/migue/.ssh/id_rsa",
+      "user": "root",
+      "ssh_options": "StrictHostKeyChecking=no",
+      "host": "higea.folderit.net",
+      "repo": "https://github.com/FolderIT/higea-api.git",
+      "ref": "origin/master",
+      "path": "/var/www/html/higea.folderit.net/higea-api",
+      "pre-deploy": "git pull",
+      "post-deploy": "npm install && bower install --allow-root && gulp frontend && pm2 startOrRestart ecosystem.json --env production"
+    }
+  }
 }
