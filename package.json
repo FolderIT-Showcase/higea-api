@@ -47,6 +47,7 @@
     "gulp-minify": "^1.0.0",
     "gulp-nodemon": "^2.2.1",
     "gulp-rename": "^1.2.2",
-    "main-bower-files": "^2.13.1"
+    "main-bower-files": "^2.13.1",
+    "pm2": "^2.6.1"
   }
 }

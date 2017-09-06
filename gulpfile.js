@@ -3,9 +3,9 @@ var bowerFiles = require('main-bower-files'),
     inject = require('gulp-inject'),
     rename = require('gulp-rename'),
     minify = require('gulp-minify'),
-    nodemon = require('gulp-nodemon'),
     htmlmin = require('gulp-htmlmin'),
     cleanCSS = require('gulp-clean-css'),
+    pm2 = require('pm2'),
     exists = require('path-exists').sync;
 
 var config = require('./config'),
@@ -16,20 +16,19 @@ var bowerFilesMin = bowerFiles().map((path, index, arr) => {
     return exists(newPath) ? newPath : path;
 });
 
+// process.on('uncaughtException', (err) => {
+//     logger.error(err.message);
+//     logger.debug(err.stack);
+// });
 
-process.on('uncaughtException', (err) => {
-    logger.error(err.message);
-    logger.debug(err.stack);
-});
-
-gulp.task('frontend', function () {
-    var cssFiles = gulp.src(['./frontend/**/*.css', '!./frontend/api/**'])
-        .pipe(cleanCSS({ compatibility: 'ie8', level: 2 }))
-        .pipe(rename({ suffix: '.min' }))
+gulp.task('frontend', () => {
+    var cssFiles = gulp.src(['./frontend/**/*.css'])
+        // .pipe(cleanCSS({ compatibility: 'ie8', level: 2 }))
+        // .pipe(rename({ suffix: '.min' }))
         .pipe(gulp.dest('./public'));
 
-    var jsFiles = gulp.src(['./frontend/**/*.js', '!./frontend/api/**'])
-        .pipe(minify({ ext: { min: '.min.js' }, noSource: true, ignoreFiles: ['.min.js'] }))
+    var jsFiles = gulp.src(['./frontend/**/*.js'])
+        // .pipe(minify({ ext: { min: '.min.js' }, noSource: true, ignoreFiles: ['.min.js'] }))
         .pipe(gulp.dest('./public'));
 
     gulp.src('./frontend/src.html')
@@ -40,10 +39,7 @@ gulp.task('frontend', function () {
         .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest('./public'));
 
-    gulp.src(['./frontend/api/**'])
-        .pipe(gulp.dest('./public/api'));
-
-    gulp.src(['./frontend/**/*.html', '!./frontend/api/**', '!./frontend/src.html'])
+    gulp.src(['./frontend/**/*.html', '!./frontend/src.html'])
         .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest('./public'));
 
@@ -51,18 +47,54 @@ gulp.task('frontend', function () {
         .pipe(gulp.dest('./public/assets'));
 });
 
-gulp.task('default', ['frontend'], function () {
-    gulp.watch(['./frontend/**/*.html', './frontend/**/*.js', './frontend/**/*.css'], ['frontend']);
+gulp.task('default', ['frontend'], () => {
+    gulp.watch(['./frontend/**/*.html', './frontend/**/*.js', './frontend/**/*.css'], () => {
+        gulp.run("frontend");
+    });
 
-    nodemon({
-        script: 'server.js',
-        ext: 'js',
-        ignore: [
-            'public/',
-            'frontend/',
-            'node_modules/',
-            'bower_components/'
-        ]
-    }).on('restart', function () {
+    pm2.connect(false, (err) => {
+        if (err) {
+            logger.error(err);
+        }
+
+        pm2.delete("higea-api", (err) => {
+            if (err) {
+                logger.error(err);
+            }
+
+            pm2.start("./ecosystem.json", (err) => {
+                if (err) {
+                    logger.error(err);
+                }
+
+                pm2.streamLogs('all', 0);
+            });
+        });
+    });
+});
+
+gulp.task('dev', ['frontend'], () => {
+    gulp.watch(['./frontend/**/*.html', './frontend/**/*.js', './frontend/**/*.css'], () => {
+        gulp.run("frontend");
+    });
+
+    pm2.connect(true, (err) => {
+        if (err) {
+            logger.error(err);
+        }
+
+        pm2.delete("higea-api", (err) => {
+            if (err) {
+                logger.error(err);
+            }
+
+            pm2.start("./ecosystem.json", (err) => {
+                if (err) {
+                    logger.error(err);
+                }
+
+                pm2.streamLogs('all', 0);
+            });
+        });
     });
 });
