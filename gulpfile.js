@@ -45,6 +45,9 @@ gulp.task('frontend', () => {
 
     gulp.src(['./frontend/assets/**', '!./frontend/assets/**/*.css', '!./frontend/assets/**/*.js'])
         .pipe(gulp.dest('./public/assets'));
+
+    gulp.src(['./frontend/api/**'])
+        .pipe(gulp.dest('./public/api'));
 });
 
 gulp.task('default', ['frontend'], () => {
