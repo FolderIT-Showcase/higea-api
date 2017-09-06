@@ -20,6 +20,10 @@ var schema = {
         type: "String",
         label: "Abreviatura"
     },
+    tipo_consulta_observaciones: {
+        type: "String",
+        label: "Observaciones/Preparaciones"
+    },
     tipo_consulta_sincargo: {
         type: "String",
         label: "Sin Cargo",
