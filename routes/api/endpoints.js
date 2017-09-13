@@ -461,7 +461,9 @@ class Endpoints {
 			}
 		});
 
-		//Autenticacion
+		//Autenticacion y status (endpoints publicos)
+		app.get('/api/status', this.status.bind(this));
+
 		app.post('/api/login', this.login.bind(this));
 
 		//Aplicación de middlewares
@@ -1236,6 +1238,12 @@ class Endpoints {
 			});
 		}, function (err) {
 			return res.status(500).json({ result: false, err: err.message });
+		});
+	}
+
+	status(req, res) {
+		return res.json({
+			result: true
 		});
 	}
 
