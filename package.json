@@ -1,6 +1,6 @@
 {
   "name": "higea-api",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "API de servicios REST para la conexión a los productos de la familia Higea",
   "main": "server.js",
   "scripts": {
