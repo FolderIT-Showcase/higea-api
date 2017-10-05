@@ -755,6 +755,9 @@ class Endpoints {
 		var code = req.params.code;
 		var horariosAtencion = [], horariosNoAtencion = [];
 
+		// Desactivación de timeout
+		res.connection.setTimeout(0);
+
 		if (req.queryWhere.profesional_id) {
 			let profesional_id = req.queryWhere.profesional_id;
 			delete req.queryWhere.profesional_id;
