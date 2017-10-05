@@ -820,33 +820,43 @@ class Endpoints {
 			horariosNoAtencion = horarios;
 
 			return new Promise((resolve, reject) => {
-				let turnosAll = [];
+				// Buscar todos los turnos otorgados en los horarios encontrados
 
-				_.forEachCb(horariosAtencion, (horario, next) => {
-					let turnosWhere = {
-						turno_hora: {
-							$between: [horario.conf_turno_hora_ini, horario.conf_turno_hora_fin]
-						},
-						servicio_id: horario.servicio_id,
-						profesional_id: horario.profesional_id || horario.conf_turno_efector_id
+				let turnosWhere = {
+					"$or": []
+				};
+
+				_.forEach(horariosAtencion, (horario) => {
+					let turnosWhereHorario = {
+						"$and": [{
+							turno_hora: {
+								$between: [horario.conf_turno_hora_ini, horario.conf_turno_hora_fin]
+							},
+							servicio_id: horario.servicio_id,
+							profesional_id: horario.profesional_id || horario.conf_turno_efector_id
+						}]
 					};
 
 					if (req.queryWhere.agenda_fecha) {
-						turnosWhere.turno_fecha = req.queryWhere.agenda_fecha;
+						turnosWhereHorario["$and"][0].turno_fecha = req.queryWhere.agenda_fecha;
 					} else {
-						turnosWhere.turno_fecha = {
+						turnosWhereHorario["$and"][0].turno_fecha = {
 							$between: [horario.conf_turno_fecha_ini, horario.conf_turno_fecha_fin]
 						};
 					}
 
 					if (horario.plan_os_id) {
-						turnosWhere.plan_os_id = horario.plan_os_id;
+						turnosWhereHorario["$and"][0].plan_os_id = horario.plan_os_id;
 					}
 
-					Turnos.find({
-						where: turnosWhere
-					}).then((turnos) => {
-						// Agregar turnos vacíos
+					turnosWhere["$or"].push(turnosWhereHorario);
+				});
+
+				Turnos.find({
+					where: turnosWhere
+				}).then((turnosAll) => {
+					// Agregar turnos vacíos
+					_.forEach(horariosAtencion, (horario) => {
 						let fechaInicio = moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD");
 						let fechaActual = moment.max(moment(), moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD")).clone();
 						let fechaFin = moment(horario.conf_turno_fecha_fin, "YYYY-MM-DD");
@@ -883,7 +893,7 @@ class Endpoints {
 								});
 
 								// Verificar que el turno no esté ocupado y sea a futuro
-								if (fechaHoraActual.isAfter(moment(), "minutes") && _.findIndex(turnos, (t) => {
+								if (fechaHoraActual.isAfter(moment(), "minutes") && _.findIndex(turnosAll, (t) => {
 									if (t.turno_fecha === turno.turno_fecha
 										&& t.turno_hora === turno.turno_hora
 										&& (t.profesional_id === turno.profesional_id
@@ -898,7 +908,7 @@ class Endpoints {
 										return false;
 									}
 								}) === -1) {
-									turnos.push(turno);
+									turnosAll.push(turno);
 								}
 
 								horaActual.add(duracion, "minutes");
@@ -906,14 +916,12 @@ class Endpoints {
 							fechaActual.add(1, "days");
 						}
 
-						// Evitar agregar turnos vacíos duplicados
-						turnosAll = _.unionWith(turnosAll, turnos, _.isEqual);
+						// Evitar agregar turnos vacíos duplicados (ya no hace falta)
+						// turnosAll = _.unionWith(turnosAll, turnos, _.isEqual);
+					});
 
-						next();
-					}).catch(reject);
-				}, (horariosAtencion) => {
 					// Quitar turnos vacíos de horarios de NO atención
-					horariosNoAtencion.forEach((horario) => {
+					_.forEach(horariosNoAtencion, (horario) => {
 						let fechaInicio = moment(horario.conf_turno_fecha_ini, "YYYY-MM-DD");
 						let fechaFin = moment(horario.conf_turno_fecha_fin, "YYYY-MM-DD");
 						let horaInicio = moment(horario.conf_turno_hora_ini, "HH:mm:ss");
@@ -941,7 +949,7 @@ class Endpoints {
 					turnosAll = _.sortBy(turnosAll, ["profesional_id", "turno_fecha", "turno_hora"]);
 
 					resolve(turnosAll);
-				});
+				}).catch(reject);
 			});
 		}).then((turnos) => {
 			res.json({
@@ -1196,7 +1204,7 @@ class Endpoints {
 				return res.status(401).json({ result: false, err: "Combinación de usuario y contraseña incorrecta." });
 
 			var token = jwt.sign(user, global.tokenSecret, {
-				expiresIn: 60 * 60 * 24 // Expirar el token en 24 horas
+				expiresIn: 60 * 60 * 24 * 30 // Expirar el token en 24 horas * 30 días
 			});
 
 			// Si no proporciona un reCAPTCHA, se lo identifica como usuario externo y se lo autentica
