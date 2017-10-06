@@ -755,10 +755,17 @@ class Endpoints {
 		var code = req.params.code;
 		var horariosAtencion = [], horariosNoAtencion = [];
 
-		// Desactivación de timeout
-		res.connection.setTimeout(0);
+		var Turnos = SQLAnywhere.table(code, "Turnos");
+		var ConfiguracionTurnosProf = SQLAnywhere.table(code, "ConfiguracionTurnosProf");
+		var ConfTurnosObraSocial = SQLAnywhere.table(code, "ConfTurnosObraSocial");
+		var ServiciosProfesionales = SQLAnywhere.table(code, "ServiciosProfesionales");
+		var PlanesObraSocial = SQLAnywhere.table(code, "PlanesObraSocial");
 
-		if (req.queryWhere.profesional_id) {
+		ConfiguracionTurnosProf.join(ConfTurnosObraSocial, ConfTurnosObraSocial.conf_turno_id)
+			.join(ServiciosProfesionales, ServiciosProfesionales.servicio_profesional_id)
+			.join(PlanesObraSocial, ConfTurnosObraSocial.obra_social_id, PlanesObraSocial.obra_social_id);
+
+		if (req.queryWhere.hasOwnProperty('profesional_id')) {
 			let profesional_id = req.queryWhere.profesional_id;
 			delete req.queryWhere.profesional_id;
 			req.queryWhere["$or"] = [{
@@ -768,7 +775,7 @@ class Endpoints {
 			}];
 		}
 
-		if (req.queryWhere.agenda_fecha) {
+		if (req.queryWhere.hasOwnProperty('agenda_fecha')) {
 			let diaSemana = moment(req.queryWhere.agenda_fecha).day() + 1;
 
 			req.queryWhere.conf_turno_fecha_fin = {
@@ -784,17 +791,21 @@ class Endpoints {
 			req.queryWhere.conf_turno_dia_atencion = diaSemana;
 		}
 
-		var Turnos = SQLAnywhere.table(code, "Turnos");
-		var ConfiguracionTurnosProf = SQLAnywhere.table(code, "ConfiguracionTurnosProf");
-		var ConfTurnosObraSocial = SQLAnywhere.table(code, "ConfTurnosObraSocial");
-		var ServiciosProfesionales = SQLAnywhere.table(code, "ServiciosProfesionales");
-		var PlanesObraSocial = SQLAnywhere.table(code, "PlanesObraSocial");
-
-		ConfiguracionTurnosProf.join(ConfTurnosObraSocial, ConfTurnosObraSocial.conf_turno_id)
-			.join(ServiciosProfesionales, ServiciosProfesionales.servicio_profesional_id)
-			.join(PlanesObraSocial, ConfTurnosObraSocial.obra_social_id, PlanesObraSocial.obra_social_id);
+		if (req.queryWhere.hasOwnProperty('plan_os_id')) {
+			let plan_os_id = req.queryWhere.plan_os_id;
+			delete req.queryWhere.plan_os_id;
+			req.queryWhere.plan_os_id = {
+				"$or": [
+					plan_os_id,
+					'null'
+				],
+				table: PlanesObraSocial
+			};
+		}
 
 		req.queryWhere.conf_turno_atiende = "S";
+
+		logger.debug(req.queryWhere);
 
 		ConfiguracionTurnosProf.find({
 			where: req.queryWhere,
@@ -804,11 +815,11 @@ class Endpoints {
 
 			req.queryWhere.conf_turno_atiende = "N";
 
-			if (req.queryWhere.plan_os_id) {
+			if (req.queryWhere.hasOwnProperty('plan_os_id')) {
 				delete req.queryWhere.plan_os_id;
 			}
 
-			if (req.queryWhere.conf_turno_dia_atencion) {
+			if (req.queryWhere.hasOwnProperty('conf_turno_dia_atencion')) {
 				delete req.queryWhere.conf_turno_dia_atencion;
 			}
 
@@ -821,10 +832,14 @@ class Endpoints {
 
 			return new Promise((resolve, reject) => {
 				// Buscar todos los turnos otorgados en los horarios encontrados
-
 				let turnosWhere = {
 					"$or": []
 				};
+
+				// Si no tiene horarios de atención, retornar 0 turnos
+				if (!horariosAtencion.length) {
+					return resolve([]);
+				}
 
 				_.forEach(horariosAtencion, (horario) => {
 					let turnosWhereHorario = {
@@ -978,7 +993,7 @@ class Endpoints {
 
 		ConfiguracionTurnosProf.join(ServiciosProfesionales, ServiciosProfesionales.servicio_profesional_id);
 
-		if (req.queryWhere.profesional_id) {
+		if (req.queryWhere.hasOwnProperty('profesional_id')) {
 			let profesional_id = req.queryWhere.profesional_id;
 			delete req.queryWhere.profesional_id;
 			req.queryWhere["$or"] = [{
