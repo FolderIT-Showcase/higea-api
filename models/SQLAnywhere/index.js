@@ -566,6 +566,36 @@ class Table {
                 }
 
                 return joint + obj["$inbetween"][0] + operator + obj["$inbetween"][1] + " AND " + obj["$inbetween"][2];
+
+                // Operador OR
+            } else if (obj.hasOwnProperty("$or")) {
+                let condition = "";
+                let i = 0;
+
+                obj["$or"].forEach((subValue) => {
+                    let subJoint = " OR ";
+
+                    if (subValue === "null" || subValue === null) {
+                        operator = " IS ";
+                    } else {
+                        if (type !== 'number' || isNaN(Number(subValue))) {
+                            subValue = "'" + subValue + "'";
+                        }
+                    }
+
+                    let subCondition = table + "." + column + operator + subValue;
+
+                    if (subCondition) {
+                        if (i > 0) {
+                            subCondition = subJoint + subCondition;
+                        }
+                        i++;
+                    }
+
+                    condition += subCondition;
+                });
+
+                return joint + " ( " + condition + " ) ";
             } else {
                 value = obj.value;
 
